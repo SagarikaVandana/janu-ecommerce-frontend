@@ -3,12 +3,23 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  server: {
-    proxy: {
-      '/api': 'https://janu-ecommerce-backend.onrender.com'
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          router: ['react-router-dom'],
+          ui: ['lucide-react', 'framer-motion']
+        }
+      }
     }
   },
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  define: {
+    'process.env.NODE_ENV': '"production"'
+  }
 });
