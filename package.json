@@ -1,13 +1,14 @@
 {
   "name": "janu-collections-frontend",
   "private": true,
-  "version": "1.0.4",
+  "version": "1.0.5",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "npx vite build",
     "preview": "vite preview",
-    "postinstall": "chmod +x node_modules/.bin/vite || true"
+    "postinstall": "chmod +x node_modules/.bin/vite || true",
+    "vercel-build": "npm run build"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^2.4.0",

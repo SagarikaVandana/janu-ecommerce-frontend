@@ -41,5 +41,7 @@
     "env": {
       "NODE_ENV": "production"
     }
-  }
+  },
+  "devCommand": "npm run dev",
+  "regions": ["iad1"]
 } 
