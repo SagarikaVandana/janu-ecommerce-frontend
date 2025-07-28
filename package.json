@@ -1,11 +1,11 @@
 {
   "name": "janu-collections-frontend",
   "private": true,
-  "version": "1.0.5",
+  "version": "1.0.8",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npx vite build",
+    "build": "node build.js",
     "preview": "vite preview",
     "postinstall": "chmod +x node_modules/.bin/vite || true",
     "vercel-build": "npm run build"
