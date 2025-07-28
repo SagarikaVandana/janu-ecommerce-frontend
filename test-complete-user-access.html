@@ -96,11 +96,11 @@
             
             try {
                 // Check backend
-                const backendResponse = await fetch('http://localhost:5000/api/health');
+                const backendResponse = await fetch('https://janu-ecommerce-backend.onrender.com/api/health');
                 const backendData = await backendResponse.json();
                 
                 // Check products API
-                const productsResponse = await fetch('http://localhost:5000/api/products?limit=1');
+                const productsResponse = await fetch('https://janu-ecommerce-backend.onrender.com/api/products?limit=1');
                 const productsData = await productsResponse.json();
                 
                 // Check frontend (try different ports)
@@ -142,7 +142,7 @@
             resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading home page products...</p></div>';
             
             try {
-                const response = await fetch('http://localhost:5000/api/products?limit=12&sort=newest');
+                const response = await fetch('https://janu-ecommerce-backend.onrender.com/api/products?limit=12&sort=newest');
                 const data = await response.json();
                 
                 if (response.ok) {
@@ -186,7 +186,7 @@
             resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading all products...</p></div>';
             
             try {
-                const response = await fetch('http://localhost:5000/api/products');
+                const response = await fetch('https://janu-ecommerce-backend.onrender.com/api/products');
                 const data = await response.json();
                 
                 if (response.ok) {
@@ -234,7 +234,7 @@
             resultDiv.innerHTML = `<div class="loading"><div class="spinner"></div><p>Loading ${category} products...</p></div>`;
             
             try {
-                const response = await fetch(`http://localhost:5000/api/products?category=${category}`);
+                const response = await fetch(`https://janu-ecommerce-backend.onrender.com/api/products?category=${category}`);
                 const data = await response.json();
                 
                 if (response.ok) {
@@ -280,7 +280,7 @@
             resultDiv.innerHTML = `<div class="loading"><div class="spinner"></div><p>Searching for "${searchTerm}"...</p></div>`;
             
             try {
-                const response = await fetch(`http://localhost:5000/api/products?search=${searchTerm}`);
+                const response = await fetch(`https://janu-ecommerce-backend.onrender.com/api/products?search=${searchTerm}`);
                 const data = await response.json();
                 
                 if (response.ok) {
@@ -327,14 +327,14 @@
             
             try {
                 // First get a product ID
-                const productsResponse = await fetch('http://localhost:5000/api/products?limit=1');
+                const productsResponse = await fetch('https://janu-ecommerce-backend.onrender.com/api/products?limit=1');
                 const productsData = await productsResponse.json();
                 
                 if (productsResponse.ok && productsData.products && productsData.products.length > 0) {
                     const productId = productsData.products[0]._id;
                     
                     // Then get product details
-                    const response = await fetch(`http://localhost:5000/api/products/${productId}`);
+                    const response = await fetch(`https://janu-ecommerce-backend.onrender.com/api/products/${productId}`);
                     const data = await response.json();
                     
                     if (response.ok) {
@@ -374,29 +374,29 @@
             
             try {
                 // Test 1: Health Check
-                const healthResponse = await fetch('http://localhost:5000/api/health');
+                const healthResponse = await fetch('https://janu-ecommerce-backend.onrender.com/api/health');
                 results.push(`Health Check: ${healthResponse.ok ? '✅ PASS' : '❌ FAIL'}`);
                 
                 // Test 2: All Products
-                const productsResponse = await fetch('http://localhost:5000/api/products');
+                const productsResponse = await fetch('https://janu-ecommerce-backend.onrender.com/api/products');
                 const productsData = await productsResponse.json();
                 const productCount = productsData.products ? productsData.products.length : 0;
                 results.push(`All Products: ${productsResponse.ok ? `✅ PASS (${productCount} products)` : '❌ FAIL'}`);
                 
                 // Test 3: Home Page Products
-                const homeResponse = await fetch('http://localhost:5000/api/products?limit=12&sort=newest');
+                const homeResponse = await fetch('https://janu-ecommerce-backend.onrender.com/api/products?limit=12&sort=newest');
                 const homeData = await homeResponse.json();
                 const homeCount = homeData.products ? homeData.products.length : 0;
                 results.push(`Home Page Products: ${homeResponse.ok ? `✅ PASS (${homeCount} products)` : '❌ FAIL'}`);
                 
                 // Test 4: Category Products
-                const categoryResponse = await fetch('http://localhost:5000/api/products?category=sarees');
+                const categoryResponse = await fetch('https://janu-ecommerce-backend.onrender.com/api/products?category=sarees');
                 const categoryData = await categoryResponse.json();
                 const categoryCount = categoryData.products ? categoryData.products.length : 0;
                 results.push(`Category Products: ${categoryResponse.ok ? `✅ PASS (${categoryCount} sarees)` : '❌ FAIL'}`);
                 
                 // Test 5: Search Products
-                const searchResponse = await fetch('http://localhost:5000/api/products?search=cotton');
+                const searchResponse = await fetch('https://janu-ecommerce-backend.onrender.com/api/products?search=cotton');
                 const searchData = await searchResponse.json();
                 const searchCount = searchData.products ? searchData.products.length : 0;
                 results.push(`Search Products: ${searchResponse.ok ? `✅ PASS (${searchCount} results)` : '❌ FAIL'}`);

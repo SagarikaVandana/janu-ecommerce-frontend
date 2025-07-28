@@ -69,7 +69,7 @@ A modern, responsive React-based frontend for the Janu Collection e-commerce pla
 3. **Environment Setup**
    Create a `.env` file in the root directory:
    ```env
-   VITE_API_URL=http://localhost:5000/api
+   VITE_API_URL=https://janu-ecommerce-backend.onrender.com/api
    VITE_STRIPE_PUBLISHABLE_KEY=your-stripe-publishable-key
    ```
 
@@ -151,7 +151,7 @@ npm run type-check   # Run TypeScript compiler
 
 ## 🔌 API Integration
 
-The frontend integrates with the backend API at `http://localhost:5000/api`:
+The frontend integrates with the backend API at `https://janu-ecommerce-backend.onrender.com/api`:
 
 - **Authentication**: `/api/auth/*`
 - **Products**: `/api/products/*`
@@ -205,7 +205,7 @@ The frontend integrates with the backend API at `http://localhost:5000/api`:
 
 ```env
 # API Configuration
-VITE_API_URL=http://localhost:5000/api
+VITE_API_URL=https://janu-ecommerce-backend.onrender.com/api
 
 # Payment Configuration
 VITE_STRIPE_PUBLISHABLE_KEY=pk_test_your-stripe-key
@@ -236,8 +236,9 @@ For support, email: janucollectionvizag@gmail.com
 ## 🔗 Links
 
 - **Backend Repository**: [Janu Collection Backend](https://github.com/SagarikaVandana/janu-ecommerce-backend.)
+- **Backend API**: [https://janu-ecommerce-backend.onrender.com](https://janu-ecommerce-backend.onrender.com)
 - **Live Demo**: [Janu Collection](https://janu-collection.vercel.app)
-- **Documentation**: [API Documentation](https://janu-collection-api.herokuapp.com/docs)
+- **API Documentation**: [https://janu-ecommerce-backend.onrender.com/docs](https://janu-ecommerce-backend.onrender.com/docs)
 
 ---
 
