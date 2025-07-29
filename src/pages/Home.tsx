@@ -7,6 +7,7 @@ import WhatsAppContact from '../components/WhatsAppContact';
 import Logo from '../components/Logo';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { API_BASE_URL, API_ENDPOINTS } from '../config/api';
 
 const Home: React.FC = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
@@ -23,7 +24,7 @@ const Home: React.FC = () => {
   const fetchFeaturedProducts = async () => {
     try {
       console.log('Fetching featured products for home page...');
-      const response = await axios.get('/api/products?limit=12&sort=newest');
+      const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.PRODUCTS}?limit=12&sort=newest`);
       console.log('Home products response:', response.data);
       
       // Handle different response structures
@@ -49,7 +50,7 @@ const Home: React.FC = () => {
     setNewsletterLoading(true);
     
     try {
-      const response = await axios.post('/api/newsletter/subscribe', {
+      const response = await axios.post(`${API_BASE_URL}${API_ENDPOINTS.NEWSLETTER_SUBSCRIBE}`, {
         email: newsletterEmail.trim()
       });
 

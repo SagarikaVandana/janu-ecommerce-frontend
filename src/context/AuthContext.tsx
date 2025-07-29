@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { API_BASE_URL, API_ENDPOINTS } from '../config/api';
 
 interface User {
   _id: string;
@@ -47,7 +48,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const response = await axios.get('/api/auth/me');
+      const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.ME}`);
       setUser(response.data);
     } catch (error) {
       localStorage.removeItem('token');
@@ -58,7 +59,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await axios.post('/api/auth/login', { email, password });
+      const response = await axios.post(`${API_BASE_URL}${API_ENDPOINTS.LOGIN}`, { email, password });
       const { token, user } = response.data;
       
       localStorage.setItem('token', token);
@@ -75,7 +76,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (name: string, email: string, password: string): Promise<boolean> => {
     try {
-      const response = await axios.post('/api/auth/register', { name, email, password });
+      const response = await axios.post(`${API_BASE_URL}${API_ENDPOINTS.REGISTER}`, { name, email, password });
       const { token, user } = response.data;
       
       localStorage.setItem('token', token);

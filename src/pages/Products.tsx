@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { Filter, SlidersHorizontal } from 'lucide-react';
+import { Filter, SlidersHorizontal, Search, ShoppingCart, Heart } from 'lucide-react';
 import axios from 'axios';
 import ProductCard from '../components/ProductCard';
+import { motion } from 'framer-motion';
+import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
+import toast from 'react-hot-toast';
+import { API_BASE_URL, API_ENDPOINTS } from '../config/api';
 
 const Products: React.FC = () => {
   const { category } = useParams();
@@ -44,7 +49,7 @@ const Products: React.FC = () => {
       if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
       if (filters.sortBy) params.append('sort', filters.sortBy);
 
-      const url = `/api/products?${params}`;
+      const url = `${API_BASE_URL}${API_ENDPOINTS.PRODUCTS}?${params}`;
       console.log('API URL:', url);
       
       const response = await axios.get(url);
