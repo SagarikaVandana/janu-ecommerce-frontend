@@ -21,20 +21,40 @@ try {
     execSync('npm install', { stdio: 'inherit' });
   }
   
-  // Try to fix permissions
-  const vitePath = path.join(nodeModulesPath, '.bin', 'vite');
-  if (fs.existsSync(vitePath)) {
+  // Fix permissions for all binaries in .bin directory
+  const binPath = path.join(nodeModulesPath, '.bin');
+  if (fs.existsSync(binPath)) {
+    console.log('🔧 Fixing permissions for binaries...');
     try {
-      fs.chmodSync(vitePath, '755');
-      console.log('✅ Fixed vite permissions');
+      const files = fs.readdirSync(binPath);
+      files.forEach(file => {
+        const filePath = path.join(binPath, file);
+        try {
+          fs.chmodSync(filePath, '755');
+          console.log(`✅ Fixed permissions for ${file}`);
+        } catch (error) {
+          console.log(`⚠️ Could not fix permissions for ${file}:`, error.message);
+        }
+      });
     } catch (error) {
-      console.log('⚠️ Could not fix vite permissions:', error.message);
+      console.log('⚠️ Could not read .bin directory:', error.message);
     }
   }
   
-  // Run the build
-  console.log('🔨 Running build...');
-  execSync('npx vite build', { stdio: 'inherit' });
+  // Alternative approach: use npx to run vite
+  console.log('🔨 Running build with npx...');
+  try {
+    execSync('npx vite build', { stdio: 'inherit' });
+  } catch (error) {
+    console.log('⚠️ npx vite build failed, trying direct vite command...');
+    // Try running vite directly from node_modules
+    const vitePath = path.join(nodeModulesPath, '.bin', 'vite');
+    if (fs.existsSync(vitePath)) {
+      execSync(`node ${vitePath} build`, { stdio: 'inherit' });
+    } else {
+      throw new Error('Vite binary not found');
+    }
+  }
   
   console.log('✅ Build completed successfully!');
 } catch (error) {

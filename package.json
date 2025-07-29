@@ -5,10 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node build.js",
-    "preview": "vite preview",
-    "postinstall": "chmod +x node_modules/.bin/vite || true",
-    "vercel-build": "npm run build"
+    "postinstall": "chmod +x node_modules/.bin/* || true",
+    "build": "node build-vercel.js",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^2.4.0",
