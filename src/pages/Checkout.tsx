@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { ArrowLeft, CreditCard, Banknote, Smartphone } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { safeMap, isArrayWithItems } from '../utils/arrayUtils';
 
 const Checkout: React.FC = () => {
   const { cartItems, clearCart } = useCart();
@@ -96,39 +98,45 @@ const Checkout: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Order Summary */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Order Summary</h2>
-            <div className="space-y-4">
-              {cartItems.map((item, index) => (
-                <div key={index} className="flex items-center space-x-4">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-16 h-16 object-cover rounded-lg"
-                  />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">{item.name}</h3>
-                    <p className="text-sm text-gray-600">Size: {item.size}</p>
-                    <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+          <div className="lg:w-1/3">
+            <div className="card p-6 sticky top-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h3>
+              
+              <div className="space-y-4">
+                {safeMap(cartItems, (item, index) => (
+                  <div key={`${item._id}-${item.size}`} className="flex items-center space-x-3">
+                    <div className="w-12 h-12 flex-shrink-0">
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-full h-full object-cover rounded-md"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{item.name}</p>
+                      <p className="text-xs text-gray-500">Size: {item.size}</p>
+                      <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-gray-900">₹{item.price * item.quantity}</p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium text-gray-900">₹{item.price * item.quantity}</p>
-                  </div>
+                ))}
+              </div>
+
+              <div className="border-t pt-4 mt-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-gray-600">Subtotal</span>
+                  <span className="text-sm font-medium">₹{cartItems.reduce((total, item) => total + item.price * item.quantity, 0)}</span>
                 </div>
-              ))}
-            </div>
-            <div className="border-t pt-4 mt-4">
-              <div className="flex justify-between text-sm">
-                <span>Subtotal:</span>
-                <span>₹{cartItems.reduce((total, item) => total + item.price * item.quantity, 0)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>Shipping:</span>
-                <span>₹99</span>
-              </div>
-              <div className="flex justify-between font-semibold text-lg mt-2">
-                <span>Total:</span>
-                <span>₹{totalAmount}</span>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-gray-600">Shipping</span>
+                  <span className="text-sm font-medium">₹99</span>
+                </div>
+                <div className="flex justify-between items-center text-lg font-bold">
+                  <span>Total</span>
+                  <span>₹{cartItems.reduce((total, item) => total + item.price * item.quantity, 0) + 99}</span>
+                </div>
               </div>
             </div>
           </div>
