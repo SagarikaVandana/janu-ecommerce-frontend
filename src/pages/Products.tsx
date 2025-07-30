@@ -55,15 +55,26 @@ const Products: React.FC = () => {
       const response = await axios.get(url);
       console.log('Products response:', response.data);
       
-      // Handle different response structures
-      const productsData = response.data.products || response.data || [];
+      // Handle different response structures and ensure it's always an array
+      let productsData = [];
+      if (response.data && response.data.products) {
+        productsData = Array.isArray(response.data.products) ? response.data.products : [];
+      } else if (response.data && Array.isArray(response.data)) {
+        productsData = response.data;
+      } else {
+        productsData = [];
+      }
+      
       setProducts(productsData);
       console.log('Products set:', productsData.length);
     } catch (error: any) {
       console.error('Error fetching products:', error);
       setError(error.response?.data?.message || 'Error fetching products');
+      // Always set an empty array to prevent map errors
+      setProducts([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleFilterChange = (key: string, value: string) => {
@@ -126,7 +137,7 @@ const Products: React.FC = () => {
         <p className="text-gray-600">
           Discover our collection of premium women's fashion
         </p>
-        {products.length > 0 && (
+        {Array.isArray(products) && products.length > 0 && (
           <p className="text-sm text-gray-500 mt-2">
             Showing {products.length} products
           </p>
@@ -254,7 +265,7 @@ const Products: React.FC = () => {
                 </div>
               ))}
             </div>
-          ) : products.length > 0 ? (
+          ) : Array.isArray(products) && products.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {products.map((product: any) => (
                 <ProductCard key={product._id} product={product} />

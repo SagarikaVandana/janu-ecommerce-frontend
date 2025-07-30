@@ -31,8 +31,16 @@ const Home: React.FC = () => {
       });
       console.log('Home products response:', response.data);
       
-      // Handle different response structures
-      const productsData = response.data.products || response.data || [];
+      // Handle different response structures and ensure it's always an array
+      let productsData = [];
+      if (response.data && response.data.products) {
+        productsData = Array.isArray(response.data.products) ? response.data.products : [];
+      } else if (response.data && Array.isArray(response.data)) {
+        productsData = response.data;
+      } else {
+        productsData = [];
+      }
+      
       setFeaturedProducts(productsData);
       setError('');
       setApiAvailable(true);
@@ -41,7 +49,7 @@ const Home: React.FC = () => {
       console.error('Error fetching featured products:', error);
       setError(error.response?.data?.message || 'Error fetching products');
       setApiAvailable(false);
-      // Set empty array to prevent infinite loading
+      // Always set an empty array to prevent map errors
       setFeaturedProducts([]);
     } finally {
       setLoading(false);
@@ -279,7 +287,7 @@ const Home: React.FC = () => {
             <div className="flex justify-center">
               <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-500"></div>
             </div>
-          ) : featuredProducts.length > 0 ? (
+          ) : Array.isArray(featuredProducts) && featuredProducts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {featuredProducts.map((product: any) => (
                 <ProductCard key={product._id} product={product} />
@@ -292,7 +300,7 @@ const Home: React.FC = () => {
             </div>
           )}
 
-          {featuredProducts.length > 0 && (
+          {Array.isArray(featuredProducts) && featuredProducts.length > 0 && (
           <div className="text-center mt-12">
             <Link
               to="/products"
