@@ -4,6 +4,7 @@ import { ArrowRight, Star, Truck, Shield, RefreshCw, MessageCircle, Phone, Mail,
 import { motion } from 'framer-motion';
 import ProductCard from '../components/ProductCard';
 import WhatsAppContact from '../components/WhatsAppContact';
+import ApiFallback from '../components/ApiFallback';
 import Logo from '../components/Logo';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -13,6 +14,7 @@ const Home: React.FC = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [apiAvailable, setApiAvailable] = useState(true);
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterLoading, setNewsletterLoading] = useState(false);
   const [newsletterSuccess, setNewsletterSuccess] = useState(false);
@@ -24,20 +26,37 @@ const Home: React.FC = () => {
   const fetchFeaturedProducts = async () => {
     try {
       console.log('Fetching featured products for home page...');
-      const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.PRODUCTS}?limit=12&sort=newest`);
+      const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.PRODUCTS}?limit=12&sort=newest`, {
+        timeout: 10000 // 10 second timeout
+      });
       console.log('Home products response:', response.data);
       
       // Handle different response structures
       const productsData = response.data.products || response.data || [];
       setFeaturedProducts(productsData);
       setError('');
+      setApiAvailable(true);
       console.log('Featured products set:', productsData.length);
     } catch (error: any) {
       console.error('Error fetching featured products:', error);
       setError(error.response?.data?.message || 'Error fetching products');
+      setApiAvailable(false);
+      // Set empty array to prevent infinite loading
+      setFeaturedProducts([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
+
+  // Show fallback if API is not available
+  if (!apiAvailable && !loading) {
+    return (
+      <ApiFallback 
+        onRetry={fetchFeaturedProducts}
+        message="Unable to load products at the moment. Please try again."
+      />
+    );
+  }
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

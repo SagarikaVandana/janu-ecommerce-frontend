@@ -11,6 +11,23 @@ const getApiBaseUrl = () => {
 
 export const API_BASE_URL = getApiBaseUrl();
 
+// Add a simple health check function
+export const checkApiHealth = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.HEALTH}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      signal: AbortSignal.timeout(5000) // 5 second timeout
+    });
+    return response.ok;
+  } catch (error) {
+    console.warn('API health check failed:', error);
+    return false;
+  }
+};
+
 export const API_ENDPOINTS = {
   // Auth endpoints
   LOGIN: '/auth/login',
