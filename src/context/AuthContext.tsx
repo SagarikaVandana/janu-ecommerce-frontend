@@ -48,13 +48,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.ME}`);
+      const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.ME}`, {
+        timeout: 5000 // Add timeout
+      });
       setUser(response.data);
     } catch (error) {
+      console.warn('Failed to fetch user:', error);
       localStorage.removeItem('token');
       delete axios.defaults.headers.common['Authorization'];
+      // Don't throw error, just set loading to false
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const login = async (email: string, password: string): Promise<boolean> => {

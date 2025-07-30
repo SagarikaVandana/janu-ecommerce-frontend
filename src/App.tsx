@@ -4,7 +4,6 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import WhatsAppContact from './components/WhatsAppContact';
 import LoadingSpinner from './components/LoadingSpinner';
-import DebugInfo from './components/DebugInfo';
 import Home from './pages/Home';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
@@ -36,7 +35,7 @@ function App() {
     // Reduced loading time to prevent infinite loading
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 500); // Reduced from 1000ms to 500ms
+    }, 300); // Further reduced to 300ms
 
     return () => clearTimeout(timer);
   }, []);
@@ -128,7 +127,6 @@ function App() {
       </main>
       <Footer />
       <WhatsAppContact variant="floating" />
-      {import.meta.env.MODE === 'development' && <DebugInfo />}
     </div>
   );
 }
