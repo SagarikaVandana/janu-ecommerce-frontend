@@ -9,7 +9,16 @@
       "destination": "/index.html"
     }
   ],
-  "buildCommand": "npm run build",
+  "buildCommand": "npm run vercel-build",
   "outputDirectory": "dist",
-  "framework": "vite"
+  "framework": "vite",
+  "env": {
+    "VITE_API_URL": "https://janu-ecommerce-backend.onrender.com/api",
+    "VITE_STRIPE_PUBLISHABLE_KEY": "pk_test_your_stripe_publishable_key_here",
+    "VITE_WHATSAPP_NUMBER": "+919391235258",
+    "VITE_INSTAGRAM_URL": "https://www.instagram.com/janucollectionvizag/",
+    "VITE_FACEBOOK_URL": "https://www.facebook.com/janucollectionvizag",
+    "VITE_YOUTUBE_URL": "https://www.youtube.com/@Janucollectionvizag",
+    "NODE_ENV": "production"
+  }
 }

@@ -7,6 +7,7 @@
     "dev": "vite",
     "postinstall": "chmod +x node_modules/.bin/* || true",
     "build": "vite build",
+    "vercel-build": "node build-vercel.js",
     "preview": "vite preview"
   },
   "dependencies": {

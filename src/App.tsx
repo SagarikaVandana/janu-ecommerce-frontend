@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import WhatsAppContact from './components/WhatsAppContact';
+import LoadingSpinner from './components/LoadingSpinner';
+import DebugInfo from './components/DebugInfo';
+import HealthCheck from './components/HealthCheck';
 import Home from './pages/Home';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
@@ -28,6 +31,21 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 
 function App() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate app initialization
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return <LoadingSpinner text="Loading Janu Collections..." />;
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -111,6 +129,8 @@ function App() {
       </main>
       <Footer />
       <WhatsAppContact variant="floating" />
+      <HealthCheck />
+      {import.meta.env.MODE === 'development' && <DebugInfo />}
     </div>
   );
 }

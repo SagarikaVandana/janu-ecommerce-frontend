@@ -1,7 +1,17 @@
 // API Configuration
-export const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://janu-ecommerce-backend.onrender.com/api'
-  : 'http://localhost:5000/api';
+const getApiBaseUrl = () => {
+  // Check for environment variable first
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // Fallback based on environment
+  return import.meta.env.MODE === 'production' 
+    ? 'https://janu-ecommerce-backend.onrender.com/api'
+    : 'http://localhost:5000/api';
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 
 export const API_ENDPOINTS = {
   // Auth endpoints

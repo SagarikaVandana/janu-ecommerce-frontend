@@ -20,6 +20,11 @@ export default defineConfig({
     exclude: ['lucide-react'],
   },
   define: {
-    'process.env.NODE_ENV': '"production"'
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+    'import.meta.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production')
+  },
+  server: {
+    port: 3000,
+    host: true
   }
 });
