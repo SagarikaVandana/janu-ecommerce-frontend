@@ -5,10 +5,8 @@ const getApiBaseUrl = () => {
     return import.meta.env.VITE_API_URL;
   }
   
-  // Fallback based on environment
-  return import.meta.env.MODE === 'production' 
-    ? 'https://janu-ecommerce-backend.onrender.com/api'
-    : 'http://localhost:5000/api';
+  // Default to production API URL
+  return 'https://janu-ecommerce-backend.onrender.com/api';
 };
 
 export const API_BASE_URL = getApiBaseUrl();
