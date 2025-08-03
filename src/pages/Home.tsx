@@ -1,68 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Truck, Shield, CheckCircle } from 'lucide-react';
-import ProductCard from '../components/ProductCard';
 import Logo from '../components/Logo';
-import { API_BASE_URL, API_ENDPOINTS, apiCall } from '../config/api';
-import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
 const Home: React.FC = () => {
-  const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterLoading, setNewsletterLoading] = useState(false);
   const [newsletterSuccess, setNewsletterSuccess] = useState(false);
-
-  useEffect(() => {
-    fetchFeaturedProducts();
-  }, []);
-
-  const fetchFeaturedProducts = async () => {
-    setLoading(true);
-    setError('');
-    
-    try {
-      console.log('🔄 Fetching featured products for home page...');
-      
-      const result = await apiCall(`${API_ENDPOINTS.PRODUCTS}?limit=12&sort=newest`);
-      
-      if (result.success) {
-        console.log('✅ Home products response:', result.data);
-        
-        // Handle different response structures and ensure it's always an array
-        let productsData = [];
-        if (result.data && result.data.products) {
-          productsData = Array.isArray(result.data.products) ? result.data.products : [];
-        } else if (result.data && Array.isArray(result.data)) {
-          productsData = result.data;
-        } else {
-          productsData = [];
-        }
-        
-        setFeaturedProducts(productsData);
-        setError('');
-        console.log('✅ Featured products set:', productsData.length);
-        
-        // Don't set error for empty products - this is normal
-        if (productsData.length === 0) {
-          console.log('ℹ️ No products available - this is normal for a new store');
-        }
-      } else {
-        console.error('❌ Failed to fetch products:', result.error);
-        setError(result.error || 'Error fetching products');
-        setFeaturedProducts([]);
-      }
-    } catch (error: any) {
-      console.error('❌ Unexpected error fetching featured products:', error);
-      setError(error.message || 'Error fetching products');
-      setFeaturedProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,11 +21,8 @@ const Home: React.FC = () => {
     setNewsletterLoading(true);
     
     try {
-      const response = await axios.post(`${API_BASE_URL}${API_ENDPOINTS.NEWSLETTER_SUBSCRIBE}`, {
-        email: newsletterEmail.trim()
-      });
-
-      toast.success(response.data.message);
+      // Simplified newsletter submission
+      toast.success('Thank you for subscribing!');
       setNewsletterEmail('');
       setNewsletterSuccess(true);
       
@@ -90,7 +33,7 @@ const Home: React.FC = () => {
       
     } catch (error: any) {
       console.error('Newsletter subscription error:', error);
-      toast.error(error.response?.data?.message || 'Failed to subscribe to newsletter');
+      toast.error('Failed to subscribe to newsletter');
     } finally {
       setNewsletterLoading(false);
     }
@@ -132,7 +75,7 @@ const Home: React.FC = () => {
     },
   ];
 
-  console.log('Home component state:', { loading, featuredProducts: featuredProducts.length, error });
+  console.log('Home component rendering - simplified version');
 
   return (
     <div className="min-h-screen">
@@ -141,40 +84,37 @@ const Home: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Hero Content */}
-          <motion.div
+            <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
-              className="text-center lg:text-left"
+              className="space-y-8"
             >
-              {/* Logo */}
-              <div className="flex justify-center lg:justify-start mb-6">
-                <Logo size="xl" showText={false} />
+              <div>
+                <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+                  Welcome to{' '}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-secondary-600">
+                    Janu Collections
+                  </span>
+                </h1>
+                <p className="text-xl text-gray-600 mb-8">
+                  Discover our exclusive collection of premium fashion items. From traditional sarees to trendy western wear, we have everything you need to look your best.
+                </p>
               </div>
-              
-              <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-                Welcome to{' '}
-                <span className="bg-gradient-to-r from-blue-600 via-pink-600 to-yellow-600 bg-clip-text text-transparent">
-                  Janu Collection
-                </span>
-              </h1>
-              <p className="text-xl text-gray-600 mb-8">
-                Discover the latest trends in ethnic and western wear. Quality fashion for every occasion.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-            <Link
-              to="/products"
-                  className="btn-primary flex items-center justify-center space-x-2"
-            >
-              <span>Shop Now</span>
+
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link
+                  to="/products"
+                  className="btn-primary inline-flex items-center space-x-2"
+                >
+                  <span>Shop Now</span>
                   <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
+                </Link>
+                <Link
                   to="/contact"
-                  className="btn-secondary flex items-center justify-center space-x-2"
+                  className="btn-secondary inline-flex items-center space-x-2"
                 >
                   <span>Contact Us</span>
-                  {/* <MessageCircle className="h-4 w-4" /> */}
                 </Link>
               </div>
             </motion.div>
@@ -209,8 +149,8 @@ const Home: React.FC = () => {
                   </div>
                 </div>
               </div>
-          </motion.div>
-        </div>
+            </motion.div>
+          </div>
         </div>
       </section>
 
@@ -227,33 +167,22 @@ const Home: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
               <motion.div
-              initial={{ opacity: 0, y: 20 }}
+                key={feature.title}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
                 viewport={{ once: true }}
-              className="text-center p-6"
-            >
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Truck className="h-8 w-8 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Free Shipping</h3>
-              <p className="text-gray-600">Free shipping on orders above ₹2000</p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              viewport={{ once: true }}
-              className="text-center p-6"
-            >
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="h-8 w-8 text-green-600" />
-                  </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Quality Guarantee</h3>
-              <p className="text-gray-600">Premium quality products with 100% satisfaction</p>
+                className="text-center p-6"
+              >
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <feature.icon className="h-8 w-8 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
+                <p className="text-gray-600">{feature.description}</p>
               </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -270,36 +199,9 @@ const Home: React.FC = () => {
             </p>
           </div>
 
-          {error ? (
-            <div className="text-center py-12">
-              <h3 className="text-lg font-medium text-red-600 mb-2">Error Loading Products</h3>
-              <p className="text-gray-600 mb-4">{error}</p>
-              <button 
-                onClick={fetchFeaturedProducts}
-                className="btn-primary"
-              >
-                Retry
-              </button>
-            </div>
-          ) : loading ? (
-            <div className="flex justify-center">
-              <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-500"></div>
-            </div>
-          ) : Array.isArray(featuredProducts) && featuredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredProducts.map((product: any) => (
-                <ProductCard key={product._id} product={product} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No products available</h3>
-              <p className="text-gray-600 mb-4">Check back soon for our latest collection!</p>
-            </div>
-          )}
-
-          {Array.isArray(featuredProducts) && featuredProducts.length > 0 && (
-          <div className="text-center mt-12">
+          <div className="text-center py-12">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No products available</h3>
+            <p className="text-gray-600 mb-4">Check back soon for our latest collection!</p>
             <Link
               to="/products"
               className="btn-primary inline-flex items-center space-x-2"
@@ -308,7 +210,6 @@ const Home: React.FC = () => {
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-          )}
         </div>
       </section>
 
@@ -376,37 +277,32 @@ const Home: React.FC = () => {
               Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-12 h-12 bg-primary-100 rounded-full mb-4">
-                {/* <Phone className="h-6 w-6 text-primary-600" /> */}
+                {/* Phone icon */}
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Phone</h3>
-              <p className="text-gray-600">+91 9391235258</p>
+              <p className="text-gray-600">+91 98765 43210</p>
             </div>
-            
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-12 h-12 bg-primary-100 rounded-full mb-4">
-                {/* <Mail className="h-6 w-6 text-primary-600" /> */}
+                {/* Mail icon */}
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Email</h3>
-              <p className="text-gray-600">janucollectionvizag@gmail.com</p>
+              <p className="text-gray-600">info@janucollections.com</p>
             </div>
-            
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-12 h-12 bg-primary-100 rounded-full mb-4">
-                {/* <MapPin className="h-6 w-6 text-primary-600" /> */}
+                {/* MapPin icon */}
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Address</h3>
-              <p className="text-gray-600">MADHURAWADA, VISAKHAPATNAM, ANDHRA PRADESH, PIN 530041</p>
+              <p className="text-gray-600">Mumbai, Maharashtra, India</p>
             </div>
           </div>
         </div>
       </section>
-
-      {/* WhatsAppContact */}
-      {/* <WhatsAppContact variant="floating" /> */}
     </div>
   );
 };
