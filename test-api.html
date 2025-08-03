@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test - Janu Collections</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 API Test - Janu Collections</h1>
+        
+        <div class="status info">
+            This page will test the API endpoints to see what's happening.
+        </div>
+
+        <div>
+            <button onclick="testHealth()">Test Health Endpoint</button>
+            <button onclick="testProducts()">Test Products Endpoint</button>
+            <button onclick="testAll()">Test All Endpoints</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://janu-ecommerce-backend.onrender.com/api';
+        
+        async function testHealth() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="info">🔄 Testing health endpoint...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                
+                resultsDiv.innerHTML = `
+                    <div class="success">✅ Health endpoint working!</div>
+                    <div class="info">Status: ${response.status}</div>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="error">❌ Health endpoint failed</div>
+                    <div class="error">Error: ${error.message}</div>
+                `;
+            }
+        }
+        
+        async function testProducts() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="info">🔄 Testing products endpoint...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/products?limit=12&sort=newest`);
+                const data = await response.json();
+                
+                resultsDiv.innerHTML = `
+                    <div class="success">✅ Products endpoint working!</div>
+                    <div class="info">Status: ${response.status}</div>
+                    <div class="info">Products count: ${data.products ? data.products.length : 0}</div>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="error">❌ Products endpoint failed</div>
+                    <div class="error">Error: ${error.message}</div>
+                `;
+            }
+        }
+        
+        async function testAll() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="info">🔄 Testing all endpoints...</div>';
+            
+            let results = '';
+            
+            // Test health
+            try {
+                const healthResponse = await fetch(`${API_BASE_URL}/health`);
+                const healthData = await healthResponse.json();
+                results += `<div class="success">✅ Health: ${healthResponse.status}</div>`;
+            } catch (error) {
+                results += `<div class="error">❌ Health: ${error.message}</div>`;
+            }
+            
+            // Test products
+            try {
+                const productsResponse = await fetch(`${API_BASE_URL}/products?limit=12&sort=newest`);
+                const productsData = await productsResponse.json();
+                results += `<div class="success">✅ Products: ${productsResponse.status} (${productsData.products ? productsData.products.length : 0} products)</div>`;
+            } catch (error) {
+                results += `<div class="error">❌ Products: ${error.message}</div>`;
+            }
+            
+            resultsDiv.innerHTML = results;
+        }
+    </script>
+</body>
+</html> 

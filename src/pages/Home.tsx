@@ -1,20 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Star, Truck, Shield, RefreshCw, MessageCircle, Phone, Mail, MapPin, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { ArrowRight, Truck, Shield, CheckCircle } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
-import WhatsAppContact from '../components/WhatsAppContact';
-import ApiFallback from '../components/ApiFallback';
 import Logo from '../components/Logo';
+import { API_BASE_URL, API_ENDPOINTS, apiCall } from '../config/api';
 import axios from 'axios';
-import toast from 'react-hot-toast';
-import { API_BASE_URL, API_ENDPOINTS, apiCall, checkApiHealth } from '../config/api';
+import { toast } from 'react-hot-toast';
 
 const Home: React.FC = () => {
-  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [apiAvailable, setApiAvailable] = useState(true);
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterLoading, setNewsletterLoading] = useState(false);
   const [newsletterSuccess, setNewsletterSuccess] = useState(false);
@@ -29,12 +26,6 @@ const Home: React.FC = () => {
     
     try {
       console.log('🔄 Fetching featured products for home page...');
-      
-      // First check if API is available
-      const isHealthy = await checkApiHealth();
-      if (!isHealthy) {
-        console.warn('⚠️ API health check failed, but continuing with product fetch...');
-      }
       
       const result = await apiCall(`${API_ENDPOINTS.PRODUCTS}?limit=12&sort=newest`);
       
@@ -53,7 +44,6 @@ const Home: React.FC = () => {
         
         setFeaturedProducts(productsData);
         setError('');
-        setApiAvailable(true);
         console.log('✅ Featured products set:', productsData.length);
         
         // Don't set error for empty products - this is normal
@@ -63,28 +53,16 @@ const Home: React.FC = () => {
       } else {
         console.error('❌ Failed to fetch products:', result.error);
         setError(result.error || 'Error fetching products');
-        setApiAvailable(false);
         setFeaturedProducts([]);
       }
     } catch (error: any) {
       console.error('❌ Unexpected error fetching featured products:', error);
       setError(error.message || 'Error fetching products');
-      setApiAvailable(false);
       setFeaturedProducts([]);
     } finally {
       setLoading(false);
     }
   };
-
-  // Show fallback only if API is not available AND we have an error
-  if (!apiAvailable && error && !loading) {
-    return (
-      <ApiFallback 
-        onRetry={fetchFeaturedProducts}
-        message="Unable to load products at the moment. Please try again."
-      />
-    );
-  }
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -196,7 +174,7 @@ const Home: React.FC = () => {
                   className="btn-secondary flex items-center justify-center space-x-2"
                 >
                   <span>Contact Us</span>
-                  <MessageCircle className="h-4 w-4" />
+                  {/* <MessageCircle className="h-4 w-4" /> */}
                 </Link>
               </div>
             </motion.div>
@@ -402,7 +380,7 @@ const Home: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-12 h-12 bg-primary-100 rounded-full mb-4">
-                <Phone className="h-6 w-6 text-primary-600" />
+                {/* <Phone className="h-6 w-6 text-primary-600" /> */}
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Phone</h3>
               <p className="text-gray-600">+91 9391235258</p>
@@ -410,7 +388,7 @@ const Home: React.FC = () => {
             
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-12 h-12 bg-primary-100 rounded-full mb-4">
-                <Mail className="h-6 w-6 text-primary-600" />
+                {/* <Mail className="h-6 w-6 text-primary-600" /> */}
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Email</h3>
               <p className="text-gray-600">janucollectionvizag@gmail.com</p>
@@ -418,7 +396,7 @@ const Home: React.FC = () => {
             
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-12 h-12 bg-primary-100 rounded-full mb-4">
-                <MapPin className="h-6 w-6 text-primary-600" />
+                {/* <MapPin className="h-6 w-6 text-primary-600" /> */}
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Address</h3>
               <p className="text-gray-600">MADHURAWADA, VISAKHAPATNAM, ANDHRA PRADESH, PIN 530041</p>
@@ -427,7 +405,8 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      <WhatsAppContact variant="floating" />
+      {/* WhatsAppContact */}
+      {/* <WhatsAppContact variant="floating" /> */}
     </div>
   );
 };
