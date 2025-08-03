@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Add Products - Janu Collections</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛍️ Quick Add Products - Janu Collections</h1>
+        
+        <div class="status info">
+            This will add 5 sample products to your database so your website has content to display.
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <button onclick="addSampleProducts()" id="addBtn">
+                Add Sample Products
+            </button>
+        </div>
+
+        <div id="status"></div>
+        
+        <div class="status info">
+            <h3>What will be added:</h3>
+            <ul style="text-align: left;">
+                <li>Elegant Silk Saree - ₹2,500</li>
+                <li>Cotton Kurti Set - ₹800</li>
+                <li>Western Dress - ₹1,200</li>
+                <li>Traditional Ethnic Wear - ₹1,800</li>
+                <li>Designer Jewelry Set - ₹500</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://janu-ecommerce-backend.onrender.com/api';
+        
+        const sampleProducts = [
+            {
+                name: "Elegant Silk Saree",
+                description: "Beautiful traditional silk saree with intricate embroidery work. Perfect for special occasions and festivals.",
+                price: 2500,
+                category: "sarees",
+                imageUrl: "https://images.pexels.com/photos/8839772/pexels-photo-8839772.jpeg",
+                isActive: true
+            },
+            {
+                name: "Cotton Kurti Set",
+                description: "Comfortable cotton kurti with matching dupatta. Ideal for daily wear and casual occasions.",
+                price: 800,
+                category: "kurtis",
+                imageUrl: "https://images.pexels.com/photos/8839774/pexels-photo-8839774.jpeg",
+                isActive: true
+            },
+            {
+                name: "Western Dress",
+                description: "Trendy western dress perfect for parties and casual outings. Made with high-quality fabric.",
+                price: 1200,
+                category: "western",
+                imageUrl: "https://images.pexels.com/photos/7679720/pexels-photo-7679720.jpeg",
+                isActive: true
+            },
+            {
+                name: "Traditional Ethnic Wear",
+                description: "Beautiful ethnic wear with traditional designs. Perfect for cultural events and celebrations.",
+                price: 1800,
+                category: "ethnic",
+                imageUrl: "https://images.pexels.com/photos/8839775/pexels-photo-8839775.jpeg",
+                isActive: true
+            },
+            {
+                name: "Designer Jewelry Set",
+                description: "Elegant jewelry set to complement your ethnic wear. Includes necklace, earrings, and bangles.",
+                price: 500,
+                category: "accessories",
+                imageUrl: "https://images.pexels.com/photos/1191531/pexels-photo-1191531.jpeg",
+                isActive: true
+            }
+        ];
+
+        async function addSampleProducts() {
+            const btn = document.getElementById('addBtn');
+            const statusDiv = document.getElementById('status');
+            
+            btn.disabled = true;
+            btn.textContent = 'Adding Products...';
+            statusDiv.innerHTML = '<div class="info">🔄 Adding sample products to database...</div>';
+            
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (let i = 0; i < sampleProducts.length; i++) {
+                const product = sampleProducts[i];
+                try {
+                    const response = await fetch(`${API_BASE_URL}/admin/products`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(product)
+                    });
+
+                    if (response.ok) {
+                        successCount++;
+                        statusDiv.innerHTML = `<div class="info">✅ Added ${successCount}/${sampleProducts.length} products...</div>`;
+                    } else {
+                        errorCount++;
+                        const error = await response.json();
+                        console.error(`Failed to add ${product.name}:`, error);
+                    }
+                } catch (error) {
+                    errorCount++;
+                    console.error(`Error adding ${product.name}:`, error);
+                }
+                
+                // Small delay between requests
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
+            if (successCount > 0) {
+                statusDiv.innerHTML = `<div class="success">✅ Successfully added ${successCount} products to your database!</div>`;
+                statusDiv.innerHTML += `<div class="info">🔄 Your website will now display these products. Refresh your website to see them.</div>`;
+            } else {
+                statusDiv.innerHTML = `<div class="error">❌ Failed to add products. Please try again or contact support.</div>`;
+            }
+            
+            btn.disabled = false;
+            btn.textContent = 'Add Sample Products';
+        }
+    </script>
+</body>
+</html> 

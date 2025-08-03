@@ -56,9 +56,9 @@ const Home: React.FC = () => {
         setApiAvailable(true);
         console.log('✅ Featured products set:', productsData.length);
         
-        // Show message if no products found
+        // Don't set error for empty products - this is normal
         if (productsData.length === 0) {
-          setError('No products available at the moment. Please check back later.');
+          console.log('ℹ️ No products available - this is normal for a new store');
         }
       } else {
         console.error('❌ Failed to fetch products:', result.error);
@@ -76,8 +76,8 @@ const Home: React.FC = () => {
     }
   };
 
-  // Show fallback if API is not available
-  if (!apiAvailable && !loading) {
+  // Show fallback only if API is not available AND we have an error
+  if (!apiAvailable && error && !loading) {
     return (
       <ApiFallback 
         onRetry={fetchFeaturedProducts}
