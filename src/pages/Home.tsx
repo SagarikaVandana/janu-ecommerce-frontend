@@ -8,7 +8,7 @@ import ApiFallback from '../components/ApiFallback';
 import Logo from '../components/Logo';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { API_BASE_URL, API_ENDPOINTS } from '../config/api';
+import { API_BASE_URL, API_ENDPOINTS, apiCall, checkApiHealth } from '../config/api';
 
 const Home: React.FC = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
@@ -24,32 +24,47 @@ const Home: React.FC = () => {
   }, []);
 
   const fetchFeaturedProducts = async () => {
+    setLoading(true);
+    setError('');
+    
     try {
-      console.log('Fetching featured products for home page...');
-      const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.PRODUCTS}?limit=12&sort=newest`, {
-        timeout: 10000 // 10 second timeout
-      });
-      console.log('Home products response:', response.data);
+      console.log('🔄 Fetching featured products for home page...');
       
-      // Handle different response structures and ensure it's always an array
-      let productsData = [];
-      if (response.data && response.data.products) {
-        productsData = Array.isArray(response.data.products) ? response.data.products : [];
-      } else if (response.data && Array.isArray(response.data)) {
-        productsData = response.data;
-      } else {
-        productsData = [];
+      // First check if API is available
+      const isHealthy = await checkApiHealth();
+      if (!isHealthy) {
+        console.warn('⚠️ API health check failed, but continuing with product fetch...');
       }
       
-      setFeaturedProducts(productsData);
-      setError('');
-      setApiAvailable(true);
-      console.log('Featured products set:', productsData.length);
+      const result = await apiCall(`${API_ENDPOINTS.PRODUCTS}?limit=12&sort=newest`);
+      
+      if (result.success) {
+        console.log('✅ Home products response:', result.data);
+        
+        // Handle different response structures and ensure it's always an array
+        let productsData = [];
+        if (result.data && result.data.products) {
+          productsData = Array.isArray(result.data.products) ? result.data.products : [];
+        } else if (result.data && Array.isArray(result.data)) {
+          productsData = result.data;
+        } else {
+          productsData = [];
+        }
+        
+        setFeaturedProducts(productsData);
+        setError('');
+        setApiAvailable(true);
+        console.log('✅ Featured products set:', productsData.length);
+      } else {
+        console.error('❌ Failed to fetch products:', result.error);
+        setError(result.error || 'Error fetching products');
+        setApiAvailable(false);
+        setFeaturedProducts([]);
+      }
     } catch (error: any) {
-      console.error('Error fetching featured products:', error);
-      setError(error.response?.data?.message || 'Error fetching products');
+      console.error('❌ Unexpected error fetching featured products:', error);
+      setError(error.message || 'Error fetching products');
       setApiAvailable(false);
-      // Always set an empty array to prevent map errors
       setFeaturedProducts([]);
     } finally {
       setLoading(false);

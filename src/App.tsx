@@ -5,6 +5,8 @@ import Footer from './components/Footer';
 import WhatsAppContact from './components/WhatsAppContact';
 import LoadingSpinner from './components/LoadingSpinner';
 import AppHealthCheck from './components/AppHealthCheck';
+import EnvironmentCheck from './components/EnvironmentCheck';
+import DeploymentStatus from './components/DeploymentStatus';
 import Home from './pages/Home';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
@@ -171,6 +173,10 @@ function App() {
       </main>
       <Footer />
       <WhatsAppContact variant="floating" />
+      {/* Show environment check in development or when there are issues */}
+      <EnvironmentCheck showDetails={import.meta.env.MODE === 'development' || import.meta.env.VITE_DEBUG === 'true'} />
+      {/* Show deployment status for debugging */}
+      <DeploymentStatus showDetails={import.meta.env.MODE === 'development' || import.meta.env.VITE_DEBUG === 'true'} />
     </div>
   );
 }

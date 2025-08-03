@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import toast from 'react-hot-toast';
-import { API_BASE_URL, API_ENDPOINTS } from '../config/api';
+import { API_BASE_URL, API_ENDPOINTS, apiCall } from '../config/api';
 
 const Products: React.FC = () => {
   const { category } = useParams();
@@ -33,15 +33,16 @@ const Products: React.FC = () => {
   ];
 
   useEffect(() => {
-    console.log('Products component mounted');
+    console.log('🔄 Products component mounted');
     fetchProducts();
   }, [category, filters]);
 
   const fetchProducts = async () => {
     setLoading(true);
     setError('');
+    
     try {
-      console.log('Fetching products with filters:', filters);
+      console.log('🔄 Fetching products with filters:', filters);
       const params = new URLSearchParams();
       
       if (category) params.append('category', category);
@@ -49,28 +50,34 @@ const Products: React.FC = () => {
       if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
       if (filters.sortBy) params.append('sort', filters.sortBy);
 
-      const url = `${API_BASE_URL}${API_ENDPOINTS.PRODUCTS}?${params}`;
-      console.log('API URL:', url);
+      const endpoint = `${API_ENDPOINTS.PRODUCTS}?${params}`;
+      console.log('🔗 API URL:', `${API_BASE_URL}${endpoint}`);
       
-      const response = await axios.get(url);
-      console.log('Products response:', response.data);
+      const result = await apiCall(endpoint);
       
-      // Handle different response structures and ensure it's always an array
-      let productsData = [];
-      if (response.data && response.data.products) {
-        productsData = Array.isArray(response.data.products) ? response.data.products : [];
-      } else if (response.data && Array.isArray(response.data)) {
-        productsData = response.data;
+      if (result.success) {
+        console.log('✅ Products response:', result.data);
+        
+        // Handle different response structures and ensure it's always an array
+        let productsData = [];
+        if (result.data && result.data.products) {
+          productsData = Array.isArray(result.data.products) ? result.data.products : [];
+        } else if (result.data && Array.isArray(result.data)) {
+          productsData = result.data;
+        } else {
+          productsData = [];
+        }
+        
+        setProducts(productsData);
+        console.log('✅ Products set:', productsData.length);
       } else {
-        productsData = [];
+        console.error('❌ Failed to fetch products:', result.error);
+        setError(result.error || 'Error fetching products');
+        setProducts([]);
       }
-      
-      setProducts(productsData);
-      console.log('Products set:', productsData.length);
     } catch (error: any) {
-      console.error('Error fetching products:', error);
-      setError(error.response?.data?.message || 'Error fetching products');
-      // Always set an empty array to prevent map errors
+      console.error('❌ Unexpected error fetching products:', error);
+      setError(error.message || 'Error fetching products');
       setProducts([]);
     } finally {
       setLoading(false);
