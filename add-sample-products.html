@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Sample Products - Janu Collections</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .product-form {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .sample-products {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛍️ Add Sample Products - Janu Collections</h1>
+        
+        <div class="status info">
+            This tool will add sample products to your database for testing purposes.
+        </div>
+
+        <div class="product-form">
+            <h3>Add Single Product</h3>
+            <form id="productForm">
+                <input type="text" id="name" placeholder="Product Name" required>
+                <textarea id="description" placeholder="Product Description" required></textarea>
+                <input type="number" id="price" placeholder="Price" required>
+                <select id="category" required>
+                    <option value="">Select Category</option>
+                    <option value="sarees">Sarees</option>
+                    <option value="kurtis">Kurtis</option>
+                    <option value="western">Western</option>
+                    <option value="ethnic">Ethnic</option>
+                    <option value="accessories">Accessories</option>
+                </select>
+                <input type="text" id="imageUrl" placeholder="Image URL" required>
+                <button type="submit">Add Product</button>
+            </form>
+        </div>
+
+        <div class="sample-products">
+            <h3>Quick Add Sample Products</h3>
+            <button onclick="addSampleProducts()">Add All Sample Products</button>
+            <div id="sampleStatus"></div>
+        </div>
+
+        <div class="status info">
+            <h3>Current Products</h3>
+            <div id="currentProducts">Loading...</div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://janu-ecommerce-backend.onrender.com/api';
+        
+        // Sample products data
+        const sampleProducts = [
+            {
+                name: "Elegant Silk Saree",
+                description: "Beautiful traditional silk saree with intricate embroidery work. Perfect for special occasions and festivals.",
+                price: 2500,
+                category: "sarees",
+                imageUrl: "https://images.pexels.com/photos/8839772/pexels-photo-8839772.jpeg"
+            },
+            {
+                name: "Cotton Kurti Set",
+                description: "Comfortable cotton kurti with matching dupatta. Ideal for daily wear and casual occasions.",
+                price: 800,
+                category: "kurtis",
+                imageUrl: "https://images.pexels.com/photos/8839774/pexels-photo-8839774.jpeg"
+            },
+            {
+                name: "Western Dress",
+                description: "Trendy western dress perfect for parties and casual outings. Made with high-quality fabric.",
+                price: 1200,
+                category: "western",
+                imageUrl: "https://images.pexels.com/photos/7679720/pexels-photo-7679720.jpeg"
+            },
+            {
+                name: "Traditional Ethnic Wear",
+                description: "Beautiful ethnic wear with traditional designs. Perfect for cultural events and celebrations.",
+                price: 1800,
+                category: "ethnic",
+                imageUrl: "https://images.pexels.com/photos/8839775/pexels-photo-8839775.jpeg"
+            },
+            {
+                name: "Designer Jewelry Set",
+                description: "Elegant jewelry set to complement your ethnic wear. Includes necklace, earrings, and bangles.",
+                price: 500,
+                category: "accessories",
+                imageUrl: "https://images.pexels.com/photos/1191531/pexels-photo-1191531.jpeg"
+            }
+        ];
+
+        // Load current products
+        async function loadCurrentProducts() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/products`);
+                const data = await response.json();
+                
+                const productsDiv = document.getElementById('currentProducts');
+                if (data.products && data.products.length > 0) {
+                    productsDiv.innerHTML = `<div class="success">✅ ${data.products.length} products found in database</div>`;
+                    data.products.forEach(product => {
+                        productsDiv.innerHTML += `<div style="margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                            <strong>${product.name}</strong> - ₹${product.price} (${product.category})
+                        </div>`;
+                    });
+                } else {
+                    productsDiv.innerHTML = '<div class="warning">⚠️ No products found in database</div>';
+                }
+            } catch (error) {
+                document.getElementById('currentProducts').innerHTML = 
+                    `<div class="error">❌ Error loading products: ${error.message}</div>`;
+            }
+        }
+
+        // Add single product
+        document.getElementById('productForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                description: document.getElementById('description').value,
+                price: Number(document.getElementById('price').value),
+                category: document.getElementById('category').value,
+                imageUrl: document.getElementById('imageUrl').value,
+                isActive: true
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/products`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    alert('✅ Product added successfully!');
+                    document.getElementById('productForm').reset();
+                    loadCurrentProducts();
+                } else {
+                    const error = await response.json();
+                    alert(`❌ Error: ${error.message}`);
+                }
+            } catch (error) {
+                alert(`❌ Error: ${error.message}`);
+            }
+        });
+
+        // Add sample products
+        async function addSampleProducts() {
+            const statusDiv = document.getElementById('sampleStatus');
+            statusDiv.innerHTML = '<div class="info">🔄 Adding sample products...</div>';
+            
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (const product of sampleProducts) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/admin/products`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            ...product,
+                            isActive: true
+                        })
+                    });
+
+                    if (response.ok) {
+                        successCount++;
+                    } else {
+                        errorCount++;
+                    }
+                } catch (error) {
+                    errorCount++;
+                }
+            }
+
+            statusDiv.innerHTML = `<div class="success">✅ Added ${successCount} products successfully${errorCount > 0 ? `, ${errorCount} failed` : ''}</div>`;
+            loadCurrentProducts();
+        }
+
+        // Load products on page load
+        window.addEventListener('load', loadCurrentProducts);
+    </script>
+</body>
+</html> 

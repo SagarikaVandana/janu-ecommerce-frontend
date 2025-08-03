@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { Filter, SlidersHorizontal, Search, ShoppingCart, Heart } from 'lucide-react';
+import { Filter, SlidersHorizontal, Search, ShoppingCart, Heart, Package, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 import ProductCard from '../components/ProductCard';
 import { motion } from 'framer-motion';
@@ -70,6 +70,13 @@ const Products: React.FC = () => {
         
         setProducts(productsData);
         console.log('✅ Products set:', productsData.length);
+        
+        // Show message if no products found
+        if (productsData.length === 0) {
+          setError('No products found. Please try different filters or check back later.');
+        } else {
+          setError('');
+        }
       } else {
         console.error('❌ Failed to fetch products:', result.error);
         setError(result.error || 'Error fetching products');
@@ -105,6 +112,10 @@ const Products: React.FC = () => {
     }));
   };
 
+  const handleRetry = () => {
+    fetchProducts();
+  };
+
   const clearFilters = () => {
     setFilters({
       category: category || '',
@@ -115,19 +126,62 @@ const Products: React.FC = () => {
     setSearchParams({});
   };
 
-  console.log('Current state:', { loading, products: products.length, error, filters });
-
-  if (error) {
+  // Loading state
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Error Loading Products</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button 
-            onClick={fetchProducts}
-            className="btn-primary"
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading products...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error && products.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6 text-center">
+          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+            <AlertCircle className="h-6 w-6 text-red-600" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Error Loading Products
+          </h3>
+          <p className="text-sm text-gray-600 mb-6">
+            {error}
+          </p>
+          <button
+            onClick={handleRetry}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
           >
             Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // No products found state
+  if (products.length === 0 && !loading && !error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6 text-center">
+          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 mb-4">
+            <Package className="h-6 w-6 text-yellow-600" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No Products Found
+          </h3>
+          <p className="text-sm text-gray-600 mb-6">
+            No products are currently available. Please check back later or try different filters.
+          </p>
+          <button
+            onClick={() => window.location.href = '/'}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Go to Home
           </button>
         </div>
       </div>

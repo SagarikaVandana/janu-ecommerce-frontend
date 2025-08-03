@@ -55,6 +55,11 @@ const Home: React.FC = () => {
         setError('');
         setApiAvailable(true);
         console.log('✅ Featured products set:', productsData.length);
+        
+        // Show message if no products found
+        if (productsData.length === 0) {
+          setError('No products available at the moment. Please check back later.');
+        }
       } else {
         console.error('❌ Failed to fetch products:', result.error);
         setError(result.error || 'Error fetching products');
