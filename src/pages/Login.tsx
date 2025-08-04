@@ -17,7 +17,13 @@ const Login: React.FC = () => {
     
     const success = await login(email, password);
     if (success) {
-      navigate('/');
+      // Check if user is admin and redirect accordingly
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (user.isAdmin) {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/');
+      }
     }
     
     setLoading(false);
