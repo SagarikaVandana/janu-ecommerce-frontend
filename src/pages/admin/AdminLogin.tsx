@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, Shield } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Shield, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { enhancedAdminLogin } from '../../utils/adminFallback';
+import toast from 'react-hot-toast';
 
 const AdminLogin: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('janucollectionvizag@gmail.com');
+  const [password, setPassword] = useState('janu123');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [fallbackMode, setFallbackMode] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -15,9 +18,40 @@ const AdminLogin: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     
-    const success = await login(email, password);
-    if (success) {
-      navigate('/admin');
+    try {
+      // First try enhanced admin login with fallback support
+      const result = await enhancedAdminLogin(email, password);
+      
+      if (result.success && result.user) {
+        setFallbackMode(result.fallbackMode || false);
+        
+        if (result.fallbackMode) {
+          toast.success('Admin login successful (fallback mode)');
+        } else {
+          toast.success('Admin login successful');
+        }
+        
+        // Navigate to admin dashboard
+        navigate('/admin/dashboard');
+      } else {
+        // Enhanced login failed, try regular login as fallback
+        const regularSuccess = await login(email, password);
+        
+        if (regularSuccess) {
+          const user = JSON.parse(localStorage.getItem('user') || '{}');
+          if (user.isAdmin) {
+            navigate('/admin/dashboard');
+          } else {
+            toast.error('Access denied. Admin privileges required.');
+            navigate('/login');
+          }
+        } else {
+          toast.error(result.error || 'Admin login failed');
+        }
+      }
+    } catch (error) {
+      console.error('Admin login error:', error);
+      toast.error('An unexpected error occurred during login');
     }
     
     setLoading(false);
@@ -34,6 +68,12 @@ const AdminLogin: React.FC = () => {
           <p className="mt-2 text-sm text-gray-600">
             Access the admin dashboard
           </p>
+          {fallbackMode && (
+            <div className="mt-3 flex items-center justify-center space-x-2 text-amber-600 bg-amber-50 px-3 py-2 rounded-md">
+              <AlertCircle className="h-4 w-4" />
+              <span className="text-sm font-medium">Fallback Mode Active</span>
+            </div>
+          )}
         </div>
         
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -104,6 +144,18 @@ const AdminLogin: React.FC = () => {
             </button>
           </div>
         </form>
+        
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600">
+            Having trouble logging in?{' '}
+            <button
+              onClick={() => navigate('/admin/setup')}
+              className="font-medium text-primary-600 hover:text-primary-500"
+            >
+              Run Admin Setup & Diagnostics
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   );

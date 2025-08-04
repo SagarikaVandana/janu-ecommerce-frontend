@@ -24,6 +24,7 @@ import AdminAnalytics from './pages/admin/AdminAnalytics';
 import AdminReports from './pages/admin/AdminReports';
 import AdminNewsletter from './pages/admin/AdminNewsletter';
 import AdminPaymentSettings from './pages/admin/AdminPaymentSettings';
+import AdminSetupPage from './pages/admin/AdminSetupPage';
 
 function App() {
   console.log('🎨 Rendering main app content...');
@@ -49,6 +50,7 @@ function App() {
           <Route path="/order-success" element={<OrderSuccess />} />
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/setup" element={<AdminSetupPage />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/products" element={<AdminProducts />} />
           <Route path="/admin/orders" element={<AdminOrders />} />
