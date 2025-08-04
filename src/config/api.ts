@@ -2,11 +2,20 @@
 const getApiBaseUrl = () => {
   // Check for environment variable first
   if (import.meta.env.VITE_API_URL) {
+    console.log('Using API URL from environment:', import.meta.env.VITE_API_URL);
     return import.meta.env.VITE_API_URL;
   }
   
+  // Check if we're in development
+  if (import.meta.env.DEV) {
+    console.log('Development mode detected, using localhost API');
+    return 'http://localhost:5000/api';
+  }
+  
   // Default to production API URL
-  return 'https://janu-ecommerce-backend.onrender.com/api';
+  const prodUrl = 'https://janu-ecommerce-backend.onrender.com/api';
+  console.log('Using production API URL:', prodUrl);
+  return prodUrl;
 };
 
 export const API_BASE_URL = getApiBaseUrl();
