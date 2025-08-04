@@ -12,8 +12,8 @@ const getApiBaseUrl = () => {
     return 'http://localhost:5000/api';
   }
   
-  // Default to production API URL
-  const prodUrl = 'https://janu-ecommerce-backend.onrender.com/api';
+  // Default to production API URL (Vercel deployment)
+  const prodUrl = 'https://janu-ecommerce-backend.vercel.app/api';
   console.log('Using production API URL:', prodUrl);
   return prodUrl;
 };

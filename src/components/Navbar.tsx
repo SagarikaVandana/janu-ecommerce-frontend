@@ -230,7 +230,8 @@ const Navbar: React.FC = () => {
               >
                 Contact
               </Link>
-              {user && (
+              {/* User Authentication Section */}
+              {user ? (
                 <>
                   <Link
                     to="/profile"
@@ -239,13 +240,27 @@ const Navbar: React.FC = () => {
                   >
                     Profile
                   </Link>
-                <Link
+                  <Link
                     to="/orders"
                     className="block px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
+                    onClick={() => setIsMenuOpen(false)}
+                  >
                     My Orders
-                </Link>
+                  </Link>
+                  <Link
+                    to="/cart"
+                    className="block px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Cart ({cartItems.length})
+                  </Link>
+                  <Link
+                    to="/wishlist"
+                    className="block px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Wishlist ({wishlistCount})
+                  </Link>
                   <button
                     onClick={() => {
                       handleLogout();
@@ -255,6 +270,23 @@ const Navbar: React.FC = () => {
                   >
                     Logout
                   </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    className="block px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="block px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Register
+                  </Link>
                 </>
               )}
             </div>
