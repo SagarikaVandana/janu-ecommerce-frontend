@@ -64,35 +64,74 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await axios.post(`${API_BASE_URL}${API_ENDPOINTS.LOGIN}`, { email, password });
+      console.log('🔐 Attempting login with:', { email, apiUrl: `${API_BASE_URL}${API_ENDPOINTS.LOGIN}` });
+      
+      const response = await axios.post(`${API_BASE_URL}${API_ENDPOINTS.LOGIN}`, { 
+        email: email.trim().toLowerCase(), 
+        password 
+      });
+      
       const { token, user } = response.data;
       
+      if (!token || !user) {
+        throw new Error('Invalid response from server');
+      }
+      
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user)); // Store user info for admin check
+      localStorage.setItem('user', JSON.stringify(user));
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setUser(user);
       
+      console.log('✅ Login successful for user:', user.email);
       toast.success('Login successful!');
       return true;
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Login failed');
+      console.error('❌ Login error:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Login failed';
+      toast.error(errorMessage);
       return false;
     }
   };
 
   const register = async (name: string, email: string, password: string): Promise<boolean> => {
     try {
-      const response = await axios.post(`${API_BASE_URL}${API_ENDPOINTS.REGISTER}`, { name, email, password });
+      console.log('📝 Attempting registration with:', { name, email, apiUrl: `${API_BASE_URL}${API_ENDPOINTS.REGISTER}` });
+      
+      // Client-side validation
+      if (!name || !email || !password) {
+        toast.error('Please provide all required fields');
+        return false;
+      }
+      
+      if (password.length < 6) {
+        toast.error('Password must be at least 6 characters long');
+        return false;
+      }
+      
+      const response = await axios.post(`${API_BASE_URL}${API_ENDPOINTS.REGISTER}`, { 
+        name: name.trim(), 
+        email: email.trim().toLowerCase(), 
+        password 
+      });
+      
       const { token, user } = response.data;
       
+      if (!token || !user) {
+        throw new Error('Invalid response from server');
+      }
+      
       localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setUser(user);
       
+      console.log('✅ Registration successful for user:', user.email);
       toast.success('Registration successful!');
       return true;
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Registration failed');
+      console.error('❌ Registration error:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Registration failed';
+      toast.error(errorMessage);
       return false;
     }
   };
