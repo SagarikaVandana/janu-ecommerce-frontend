@@ -5,6 +5,12 @@ const getApiBaseUrl = () => {
     return import.meta.env.VITE_API_URL;
   }
   
+  // Check if we're in development mode
+  if (import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    // Default to local backend in development
+    return 'http://localhost:5000/api';
+  }
+  
   // Default to production API URL
   return 'https://janu-ecommerce-backend.onrender.com/api';
 };
