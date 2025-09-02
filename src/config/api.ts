@@ -1,18 +1,28 @@
 // API Configuration
 const getApiBaseUrl = () => {
-  // Check for environment variable first
+  console.log('Environment:', import.meta.env.MODE);
+  console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
+  
+  // Check for environment variable first (this takes highest priority)
   if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
+    const url = import.meta.env.VITE_API_URL;
+    console.log('Using VITE_API_URL from environment:', url);
+    return url.endsWith('/') ? url.slice(0, -1) : url; // Remove trailing slash if present
   }
   
-  // Check if we're in development mode
-  if (import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    // Default to local backend in development
+  // Check if we're in development mode or running locally
+  if (import.meta.env.DEV || 
+      window.location.hostname === 'localhost' || 
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname === '') {
+    console.log('Using development API URL');
     return 'http://localhost:5000/api';
   }
   
-  // Default to production API URL
-  return 'https://janu-ecommerce-backend.onrender.com/api';
+  // Production URL - point to your Render backend
+  const prodUrl = 'https://janu-ecommerce-backend.onrender.com/api';
+  console.log('Using production API URL:', prodUrl);
+  return prodUrl;
 };
 
 export const API_BASE_URL = getApiBaseUrl();
