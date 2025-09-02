@@ -97,36 +97,36 @@ export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
 
 export const API_ENDPOINTS = {
   // Auth endpoints
-  LOGIN: '/api/auth/login',
-  REGISTER: '/api/auth/register',
-  ME: '/api/auth/me',
+  LOGIN: '/auth/login',
+  REGISTER: '/auth/register',
+  ME: '/auth/me',
   
   // Product endpoints
-  PRODUCTS: '/api/products',
-  PRODUCT_DETAIL: (id: string) => `/api/products/${id}`,
+  PRODUCTS: '/products',
+  PRODUCT_DETAIL: (id: string) => `/products/${id}`,
   
   // Order endpoints
-  ORDERS: '/api/orders',
-  ORDER_DETAIL: (id: string) => `/api/orders/${id}`,
-  USER_STATS: '/api/orders/user-stats',
+  ORDERS: '/orders',
+  ORDER_DETAIL: (id: string) => `/orders/${id}`,
+  USER_STATS: '/orders/user-stats',
   
   // User endpoints
-  USER_PROFILE: '/api/users/profile',
-  CHANGE_PASSWORD: '/api/users/change-password',
+  USER_PROFILE: '/users/profile',
+  CHANGE_PASSWORD: '/users/change-password',
+  UPDATE_PROFILE: '/users/update-profile',
   
-  // Admin endpoints
-  ADMIN_DASHBOARD: '/api/admin/dashboard-stats',
-  ADMIN_PRODUCTS: '/api/admin/products',
-  ADMIN_ORDERS: '/api/admin/orders',
-  ADMIN_USERS: '/api/admin/users',
-  ADMIN_CATEGORIES: '/api/admin/categories',
-  ADMIN_UPLOAD: '/api/admin/upload',
+  // Category endpoints
+  CATEGORIES: '/categories',
   
-  // Other endpoints
-  CONFIG: '/api/config',
-  HEALTH: '/api/health',
-  NEWSLETTER_SUBSCRIBE: '/api/newsletter/subscribe',
+  // Review endpoints
+  REVIEWS: '/reviews',
+  
+  // Wishlist endpoints
+  WISHLIST: '/wishlist',
+  
+  // Newsletter endpoints
+  NEWSLETTER_SUBSCRIBE: '/newsletter/subscribe',
   
   // Payment endpoints
-  PAYMENT_SETTINGS: '/api/payment-settings',
-}; 
+  PAYMENT_SETTINGS: '/payment-settings',
+};
