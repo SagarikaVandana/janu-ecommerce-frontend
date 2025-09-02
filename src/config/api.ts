@@ -97,36 +97,36 @@ export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
 
 export const API_ENDPOINTS = {
   // Auth endpoints
-  LOGIN: '/auth/login',
-  REGISTER: '/auth/register',
-  ME: '/auth/me',
+  LOGIN: '/api/auth/login',
+  REGISTER: '/api/auth/register',
+  ME: '/api/auth/me',
   
   // Product endpoints
-  PRODUCTS: '/products',
-  PRODUCT_DETAIL: (id: string) => `/products/${id}`,
+  PRODUCTS: '/api/products',
+  PRODUCT_DETAIL: (id: string) => `/api/products/${id}`,
   
   // Order endpoints
-  ORDERS: '/orders',
-  ORDER_DETAIL: (id: string) => `/orders/${id}`,
-  USER_STATS: '/orders/user-stats',
+  ORDERS: '/api/orders',
+  ORDER_DETAIL: (id: string) => `/api/orders/${id}`,
+  USER_STATS: '/api/orders/user-stats',
   
   // User endpoints
-  USER_PROFILE: '/users/profile',
-  CHANGE_PASSWORD: '/users/change-password',
+  USER_PROFILE: '/api/users/profile',
+  CHANGE_PASSWORD: '/api/users/change-password',
   
   // Admin endpoints
-  ADMIN_DASHBOARD: '/admin/dashboard-stats',
-  ADMIN_PRODUCTS: '/admin/products',
-  ADMIN_ORDERS: '/admin/orders',
-  ADMIN_ANALYTICS: '/admin/analytics',
-  ADMIN_REPORTS: '/admin/reports',
+  ADMIN_DASHBOARD: '/api/admin/dashboard-stats',
+  ADMIN_PRODUCTS: '/api/admin/products',
+  ADMIN_ORDERS: '/api/admin/orders',
+  ADMIN_USERS: '/api/admin/users',
+  ADMIN_CATEGORIES: '/api/admin/categories',
+  ADMIN_UPLOAD: '/api/admin/upload',
   
-  // Newsletter endpoints
-  NEWSLETTER_SUBSCRIBE: '/newsletter/subscribe',
+  // Other endpoints
+  CONFIG: '/api/config',
+  HEALTH: '/api/health',
+  NEWSLETTER_SUBSCRIBE: '/api/newsletter/subscribe',
   
   // Payment endpoints
-  PAYMENT_SETTINGS: '/payment-settings',
-  
-  // Health check
-  HEALTH: '/health'
+  PAYMENT_SETTINGS: '/api/payment-settings',
 }; 
