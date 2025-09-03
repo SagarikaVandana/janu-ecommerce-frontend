@@ -113,6 +113,10 @@ export const API_ENDPOINTS = {
   // User endpoints
   USER_PROFILE: '/users/profile',
   CHANGE_PASSWORD: '/users/change-password',
+  
+  // Admin endpoints
+  ADMIN_PRODUCTS: '/admin/products',
+  
   UPDATE_PROFILE: '/users/update-profile',
   
   // Category endpoints

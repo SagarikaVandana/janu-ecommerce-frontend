@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, Filter, Upload, X } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { API_BASE_URL } from '../../config/api';
+import { API_BASE_URL, API_ENDPOINTS } from '../../config/api';
 
 const AdminProducts: React.FC = () => {
   const [products, setProducts] = useState([]);
@@ -27,7 +27,7 @@ const AdminProducts: React.FC = () => {
       console.log('Token:', token ? 'Present' : 'Missing');
       console.log('API Base URL:', API_BASE_URL);
       
-      const response = await axios.get(`${API_BASE_URL}/admin/products`, {
+      const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_PRODUCTS}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -74,7 +74,7 @@ const AdminProducts: React.FC = () => {
   const handleDeleteProduct = async (productId: string) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
-        await axios.delete(`${API_BASE_URL}/admin/products/${productId}`);
+        await axios.delete(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_PRODUCTS}/${productId}`);
         setProducts(products.filter((p: any) => p._id !== productId));
         toast.success('Product deleted successfully');
       } catch (error) {
