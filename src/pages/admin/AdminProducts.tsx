@@ -1,17 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Search, Filter, Upload, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Upload, X } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { API_BASE_URL, API_ENDPOINTS } from '../../config/api';
 
+interface Product {
+  _id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  images: string[];
+  // Add other product properties as needed
+}
+
 const AdminProducts: React.FC = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [error, setError] = useState('');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [error, setError] = useState<string>('');
 
   const categories = ['sarees', 'kurtis', 'western', 'ethnic', 'accessories'];
 
@@ -22,50 +33,71 @@ const AdminProducts: React.FC = () => {
 
   const fetchProducts = async () => {
     try {
-      console.log('Fetching products...');
-      const token = localStorage.getItem('token');
-      console.log('Token:', token ? 'Present' : 'Missing');
-      console.log('API Base URL:', API_BASE_URL);
+      setLoading(true);
+      setError('');
+      
+      // Get token and validate
+      let token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No token found in localStorage');
+        window.location.href = '/#/admin/login';
+        return;
+      }
+      
+      // Clean up token (remove quotes if present)
+      token = token.replace(/^['"]|['"]$/g, '');
+      
+      console.log('Using API Base URL:', API_BASE_URL);
+      console.log('Using token (first 10 chars):', token ? `${token.substring(0, 10)}...` : 'No token');
       
       const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_PRODUCTS}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
-        withCredentials: true
+        validateStatus: (status) => status < 500 // Don't throw for 4xx errors
       });
       
       console.log('Products response status:', response.status);
-      console.log('Products response data:', response.data);
       
-      setProducts(response.data.products || response.data);
-      setError('');
+      if (response.status === 200) {
+        console.log('Products loaded successfully');
+        setProducts(response.data);
+        setFilteredProducts(response.data); // Add this line
+      } else if (response.status === 401) {
+        console.error('Unauthorized - redirecting to login');
+        localStorage.removeItem('token');
+        window.location.href = '/#/admin/login';
+        return;
+      } else {
+        console.error('Error response:', response.data);
+        setError(response.data.message || 'Failed to load products');
+      }
     } catch (error: any) {
-      console.error('Error fetching products:', {
-        message: error.message,
-        response: error.response ? {
-          status: error.response.status,
-          statusText: error.response.statusText,
-          data: error.response.data
-        } : 'No response',
-        config: {
-          url: error.config?.url,
-          method: error.config?.method,
-          headers: error.config?.headers
-        }
-      });
+      console.error('Error in fetchProducts:', error);
       
-      const errorMessage = error.response?.data?.message || 
-                         error.message || 
-                         'Error fetching products';
+      let errorMessage = 'Failed to load products. Please try again.';
+      
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error status:', error.response.status);
+        
+        if (error.response.status === 401) {
+          localStorage.removeItem('token');
+          window.location.href = '/#/admin/login';
+          return;
+        }
+        
+        errorMessage = error.response.data?.message || errorMessage;
+      } else if (error.request) {
+        console.error('No response received:', error.request);
+        errorMessage = 'No response from server. Please check your connection.';
+      } else {
+        console.error('Request setup error:', error.message);
+      }
       
       setError(errorMessage);
-      toast.error(`Error: ${errorMessage}`);
-      
-      // If unauthorized, redirect to login
-      if (error.response?.status === 401) {
-        window.location.href = '/#/admin/login';
-      }
     } finally {
       setLoading(false);
     }
