@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Truck, CheckCircle, XCircle, Eye, Edit } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config/api';
 import toast from 'react-hot-toast';
 
 interface Order {
@@ -43,7 +44,7 @@ const AdminOrders: React.FC = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await axios.get('/api/admin/orders');
+      const response = await axios.get(`${API_BASE_URL}/admin/orders`);
       setOrders(response.data.orders);
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -55,7 +56,7 @@ const AdminOrders: React.FC = () => {
 
   const handleUpdateStatus = async (orderId: string, newStatus: string) => {
     try {
-      const response = await axios.put(`/api/admin/orders/${orderId}`, {
+      const response = await axios.put(`${API_BASE_URL}/admin/orders/${orderId}`, {
         status: newStatus,
       });
 

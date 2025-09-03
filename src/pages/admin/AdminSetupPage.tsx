@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminSetup from '../../components/AdminSetup';
+import axios from 'axios';
+import { API_BASE_URL } from '../../config/api';
 
 const AdminSetupPage: React.FC = () => {
   const navigate = useNavigate();
@@ -28,7 +30,10 @@ const AdminSetupPage: React.FC = () => {
         
         <div className="mt-8 text-center">
           <button
-            onClick={() => navigate('/admin/login')}
+            onClick={async () => {
+              const response = await axios.post(`${API_BASE_URL}/admin/setup`, {});
+              navigate('/admin/login');
+            }}
             className="text-primary-600 hover:text-primary-500 text-sm font-medium"
           >
             ← Back to Admin Login

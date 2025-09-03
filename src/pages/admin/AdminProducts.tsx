@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, Upload, X } from 'lucide-react';
-import { apiCall } from '../../config/api';
+import axios from 'axios';
 import toast from 'react-hot-toast';
 import { API_BASE_URL, API_ENDPOINTS } from '../../config/api';
 
@@ -414,10 +414,10 @@ const ProductModal: React.FC<{
       };
 
       if (product) {
-        await axios.put(`/api/admin/products/${product._id}`, productData);
+        await axios.put(`${API_BASE_URL}/admin/products/${product._id}`, productData);
         toast.success('Product updated successfully');
       } else {
-        await axios.post('/api/admin/products', productData);
+        await axios.post(`${API_BASE_URL}/admin/products`, productData);
         toast.success('Product created successfully');
       }
 

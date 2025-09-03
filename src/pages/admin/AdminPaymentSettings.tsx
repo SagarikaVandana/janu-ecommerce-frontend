@@ -3,7 +3,8 @@ import { toast } from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { QrCode, Camera, Download, EyeOff } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-import { apiCall } from '../../config/api';
+import axios from 'axios';
+import { API_BASE_URL } from '../../config/api';
 
 interface PaymentSettings {
   _id: string;
@@ -61,19 +62,18 @@ const AdminPaymentSettings: React.FC = () => {
       setError(null);
       
       console.log('Fetching payment settings...');
-      const { success, data, error } = await apiCall('/payment-settings/admin', {
-        method: 'GET'
-      });
+      const response = await axios.get(`${API_BASE_URL}/payment-settings/admin`);
+      const { data } = response;
 
-      if (success) {
+      if (data.success) {
         console.log('Payment settings loaded successfully');
-        setPaymentSettings(data);
+        setPaymentSettings(data.data);
       } else {
-        console.error('Error fetching payment settings:', error);
-        setError(error || 'Error fetching payment settings');
-        toast.error(error || 'Error fetching payment settings');
+        console.error('Error fetching payment settings:', data.error);
+        setError(data.error || 'Error fetching payment settings');
+        toast.error(data.error || 'Error fetching payment settings');
         
-        if (error?.includes('token') || error?.includes('auth')) {
+        if (data.error?.includes('token') || data.error?.includes('auth')) {
           // Handle token expiration or invalid token
           localStorage.removeItem('token');
           window.location.href = '/#/admin/login';
@@ -93,18 +93,20 @@ const AdminPaymentSettings: React.FC = () => {
     
     try {
       const endpoint = editingId 
-        ? `/payment-settings/${editingId}`
-        : '/payment-settings';
+        ? `${API_BASE_URL}/payment-settings/${editingId}`
+        : `${API_BASE_URL}/payment-settings`;
       
       const method = editingId ? 'PUT' : 'POST';
       
       console.log(`Submitting payment settings (${method}):`, formData);
-      const { success, data, error } = await apiCall(endpoint, {
+      const response = await axios({
         method,
-        body: JSON.stringify(formData)
+        url: endpoint,
+        data: JSON.stringify(formData)
       });
+      const { data } = response;
 
-      if (success) {
+      if (data.success) {
         console.log('Payment settings saved successfully:', data);
         toast.success(data.message);
         
@@ -113,9 +115,9 @@ const AdminPaymentSettings: React.FC = () => {
         resetForm();
         fetchPaymentSettings();
       } else {
-        console.error('Error saving payment settings:', error);
-        setError(error || 'Error saving payment settings');
-        toast.error(error || 'Error saving payment settings');
+        console.error('Error saving payment settings:', data.error);
+        setError(data.error || 'Error saving payment settings');
+        toast.error(data.error || 'Error saving payment settings');
       }
     } catch (error: any) {
       console.error('Error saving payment settings:', error);
@@ -154,11 +156,10 @@ const AdminPaymentSettings: React.FC = () => {
     }
 
     try {
-      await apiCall(`/payment-settings/${id}`, {
-        method: 'DELETE'
-      });
+      const response = await axios.delete(`${API_BASE_URL}/payment-settings/${id}`);
+      const { data } = response;
 
-      toast.success('Payment settings deleted successfully');
+      toast.success(data.message);
       fetchPaymentSettings();
     } catch (error: any) {
       console.error('Error deleting payment settings:', error);
@@ -168,10 +169,8 @@ const AdminPaymentSettings: React.FC = () => {
 
   const handleToggleActive = async (id: string) => {
     try {
-      const { data } = await apiCall(`/payment-settings/${id}/toggle`, {
-        method: 'PATCH',
-        body: JSON.stringify({})
-      });
+      const response = await axios.patch(`${API_BASE_URL}/payment-settings/${id}/toggle`);
+      const { data } = response;
 
       toast.success(data.message);
       fetchPaymentSettings();

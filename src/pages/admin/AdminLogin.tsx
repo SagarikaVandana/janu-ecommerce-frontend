@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, Shield, AlertCircle } from 'lucide-react';
+import { Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import axios from 'axios';
+import { API_BASE_URL } from '../../config/api';
 import { useAuth } from '../../context/AuthContext';
 import { enhancedAdminLogin } from '../../utils/adminFallback';
 import toast from 'react-hot-toast';
@@ -20,7 +22,8 @@ const AdminLogin: React.FC = () => {
     
     try {
       // First try enhanced admin login with fallback support
-      const result = await enhancedAdminLogin(email, password);
+      const response = await axios.post(`${API_BASE_URL}/admin/login`, { email, password });
+      const result = response.data;
       
       if (result?.success && result.user) {
         setFallbackMode(!!result.fallbackMode);

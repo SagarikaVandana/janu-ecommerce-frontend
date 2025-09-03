@@ -11,6 +11,7 @@ import {
   Mail,
 } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config/api';
 
 const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState({
@@ -28,12 +29,18 @@ const AdminDashboard: React.FC = () => {
 
   const fetchDashboardStats = async () => {
     try {
-      const response = await axios.get('/api/admin/dashboard-stats');
+      const response = await axios.get(`${API_BASE_URL}/admin/dashboard-stats`);
       setStats(response.data);
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
+      // Show error toast to user
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const statCards = [

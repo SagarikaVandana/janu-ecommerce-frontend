@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, Users, ShoppingBag, DollarSign, Calendar } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config/api';
 
 const AdminAnalytics: React.FC = () => {
   const [analytics, setAnalytics] = useState({
@@ -24,7 +25,7 @@ const AdminAnalytics: React.FC = () => {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`/api/admin/analytics?timeRange=${timeRange}`);
+      const response = await axios.get(`${API_BASE_URL}/admin/analytics?timeRange=${timeRange}`);
       setAnalytics(response.data);
     } catch (error) {
       console.error('Error fetching analytics:', error);

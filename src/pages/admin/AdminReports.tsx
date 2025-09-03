@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Download, FileText, Calendar, Filter, Search } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config/api';
 
 interface ReportData {
   totalRevenue?: number;
@@ -33,7 +34,7 @@ const AdminReports: React.FC = () => {
   const fetchReports = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`/api/admin/reports?type=${selectedReport}&dateRange=${dateRange}`);
+      const response = await axios.get(`${API_BASE_URL}/admin/reports?type=${selectedReport}&dateRange=${dateRange}`);
       setReports(response.data);
     } catch (error) {
       console.error('Error fetching reports:', error);
@@ -44,7 +45,7 @@ const AdminReports: React.FC = () => {
 
   const exportReport = async (type: string) => {
     try {
-      const response = await axios.get(`/api/admin/reports/export?type=${type}&dateRange=${dateRange}`, {
+      const response = await axios.get(`${API_BASE_URL}/admin/reports/export?type=${type}&dateRange=${dateRange}`, {
         responseType: 'blob'
       });
       

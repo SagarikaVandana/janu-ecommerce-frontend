@@ -95,7 +95,7 @@ const AdminNewsletter: React.FC = () => {
   const handleToggleSubscription = async (id: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.patch(`${API_BASE_URL}/newsletter/admin/${id}/toggle`, {}, {
+      const response = await axios.patch(`${API_BASE_URL}/admin/newsletter/subscribers/${id}/toggle`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -114,7 +114,7 @@ const AdminNewsletter: React.FC = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`${API_BASE_URL}/newsletter/admin/${id}`, {
+      await axios.delete(`${API_BASE_URL}/admin/newsletter/subscribers/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
