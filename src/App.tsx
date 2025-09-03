@@ -58,6 +58,8 @@ function App() {
           <Route path="/admin/reports" element={<AdminReports />} />
           <Route path="/admin/newsletter" element={<AdminNewsletter />} />
           <Route path="/admin/payment-settings" element={<AdminPaymentSettings />} />
+          {/* Catch-all route for admin paths */}
+          <Route path="/admin" element={<AdminLogin />} />
         </Routes>
       </main>
       <Footer />
