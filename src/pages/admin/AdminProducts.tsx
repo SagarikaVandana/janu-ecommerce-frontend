@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, Filter, Upload, X } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { API_BASE_URL } from '../../config/api';
 
 const AdminProducts: React.FC = () => {
   const [products, setProducts] = useState([]);
@@ -25,7 +26,7 @@ const AdminProducts: React.FC = () => {
       const token = localStorage.getItem('token');
       console.log('Token:', token ? 'Present' : 'Missing');
       
-      const response = await axios.get('/api/admin/products', {
+      const response = await axios.get(`${API_BASE_URL}/admin/products`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -44,7 +45,7 @@ const AdminProducts: React.FC = () => {
   const handleDeleteProduct = async (productId: string) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
-        await axios.delete(`/api/admin/products/${productId}`);
+        await axios.delete(`${API_BASE_URL}/admin/products/${productId}`);
         setProducts(products.filter((p: any) => p._id !== productId));
         toast.success('Product deleted successfully');
       } catch (error) {
