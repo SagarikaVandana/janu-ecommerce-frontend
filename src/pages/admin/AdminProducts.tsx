@@ -25,21 +25,50 @@ const AdminProducts: React.FC = () => {
       console.log('Fetching products...');
       const token = localStorage.getItem('token');
       console.log('Token:', token ? 'Present' : 'Missing');
+      console.log('API Base URL:', API_BASE_URL);
       
       const response = await axios.get(`${API_BASE_URL}/admin/products`, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        withCredentials: true
       });
-      console.log('Products response:', response.data);
+      
+      console.log('Products response status:', response.status);
+      console.log('Products response data:', response.data);
+      
       setProducts(response.data.products || response.data);
       setError('');
     } catch (error: any) {
-      console.error('Error fetching products:', error);
-      setError(error.response?.data?.message || 'Error fetching products');
-      toast.error('Error fetching products');
+      console.error('Error fetching products:', {
+        message: error.message,
+        response: error.response ? {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: error.response.data
+        } : 'No response',
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          headers: error.config?.headers
+        }
+      });
+      
+      const errorMessage = error.response?.data?.message || 
+                         error.message || 
+                         'Error fetching products';
+      
+      setError(errorMessage);
+      toast.error(`Error: ${errorMessage}`);
+      
+      // If unauthorized, redirect to login
+      if (error.response?.status === 401) {
+        window.location.href = '/#/admin/login';
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleDeleteProduct = async (productId: string) => {
