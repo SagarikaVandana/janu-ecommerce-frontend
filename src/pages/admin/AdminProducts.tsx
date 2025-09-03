@@ -16,13 +16,21 @@ interface Product {
 
 const AdminProducts: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [error, setError] = useState<string>('');
+  
+  // Memoize filtered products to avoid recalculating on every render
+  const filteredProducts = React.useMemo(() => {
+    return products.filter((product) => {
+      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = selectedCategory === '' || product.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [products, searchTerm, selectedCategory]);
 
   const categories = ['sarees', 'kurtis', 'western', 'ethnic', 'accessories'];
 
@@ -64,7 +72,6 @@ const AdminProducts: React.FC = () => {
       if (response.status === 200) {
         console.log('Products loaded successfully');
         setProducts(response.data);
-        setFilteredProducts(response.data); // Add this line
       } else if (response.status === 401) {
         console.error('Unauthorized - redirecting to login');
         localStorage.removeItem('token');
@@ -115,11 +122,7 @@ const AdminProducts: React.FC = () => {
     }
   };
 
-  const filteredProducts = products.filter((product: any) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === '' || product.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  // Removed the effect that was setting filteredProducts state
 
   console.log('Current state:', { loading, products: products.length, error });
 
