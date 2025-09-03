@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, Upload, X } from 'lucide-react';
-import axios from 'axios';
+import { apiCall } from '../../config/api';
 import toast from 'react-hot-toast';
 import { API_BASE_URL, API_ENDPOINTS } from '../../config/api';
 
@@ -40,51 +40,35 @@ const AdminProducts: React.FC = () => {
   }, []);
 
   const fetchProducts = async () => {
+    setLoading(true);
+    setError('');
+
     try {
-      setLoading(true);
-      setError('');
-      
-      // Get token and validate
-      let token = localStorage.getItem('token');
-      if (!token) {
-        console.error('No token found in localStorage');
-        window.location.href = '/#/admin/login';
-        return;
-      }
-      
-      // Clean up token (remove quotes if present)
-      token = token.replace(/^['"]|['"]$/g, '');
-      
-      console.log('Using API Base URL:', API_BASE_URL);
-      console.log('Using token (first 10 chars):', token ? `${token.substring(0, 10)}...` : 'No token');
-      
-      const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_PRODUCTS}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        validateStatus: (status) => status < 500 // Don't throw for 4xx errors
+      console.log('Fetching products from:', `${API_BASE_URL}${API_ENDPOINTS.ADMIN_PRODUCTS}`);
+
+      const { success, data, error } = await apiCall(API_ENDPOINTS.ADMIN_PRODUCTS, {
+        method: 'GET'
       });
-      
-      console.log('Products response status:', response.status);
-      
-      if (response.status === 200) {
+
+      if (success) {
         console.log('Products loaded successfully');
-        setProducts(response.data);
-      } else if (response.status === 401) {
-        console.error('Unauthorized - redirecting to login');
-        localStorage.removeItem('token');
-        window.location.href = '/#/admin/login';
-        return;
+        setProducts(data);
       } else {
-        console.error('Error response:', response.data);
-        setError(response.data.message || 'Failed to load products');
+        console.error('Error loading products:', error);
+        setError(error || 'Failed to load products');
+
+        if (error?.includes('Unauthorized') || error?.includes('token')) {
+          console.log('Authentication error - redirecting to login');
+          localStorage.removeItem('token');
+          window.location.href = '/#/admin/login';
+          return;
+        }
       }
     } catch (error: any) {
       console.error('Error in fetchProducts:', error);
-      
+
       let errorMessage = 'Failed to load products. Please try again.';
+
       
       if (error.response) {
         console.error('Error response data:', error.response.data);
@@ -113,11 +97,19 @@ const AdminProducts: React.FC = () => {
   const handleDeleteProduct = async (productId: string) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
-        await axios.delete(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_PRODUCTS}/${productId}`);
-        setProducts(products.filter((p: any) => p._id !== productId));
-        toast.success('Product deleted successfully');
+        const { success, error } = await apiCall(`${API_ENDPOINTS.ADMIN_PRODUCTS}/${productId}`, {
+          method: 'DELETE'
+        });
+        
+        if (success) {
+          setProducts(products.filter((p: any) => p._id !== productId));
+          toast.success('Product deleted successfully');
+        } else {
+          throw new Error(error || 'Failed to delete product');
+        }
       } catch (error) {
-        toast.error('Error deleting product');
+        console.error('Error deleting product:', error);
+        toast.error(error instanceof Error ? error.message : 'Error deleting product');
       }
     }
   };

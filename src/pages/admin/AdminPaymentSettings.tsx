@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
-import { QrCode, Camera, Download, Eye, EyeOff } from 'lucide-react';
+import { QrCode, Camera, Download, EyeOff } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
+import { apiCall } from '../../config/api';
 
 interface PaymentSettings {
   _id: string;
@@ -25,7 +25,7 @@ interface PaymentSettings {
 }
 
 const AdminPaymentSettings: React.FC = () => {
-  const { user } = useAuth();
+  const {} = useAuth(); // Destructure only needed values
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,8 +51,6 @@ const AdminPaymentSettings: React.FC = () => {
     paymentInstructions: 'Please make payment to the provided UPI ID or bank account. Share the payment screenshot for order confirmation.',
   });
 
-  const API_BASE_URL = '/api';
-
   useEffect(() => {
     fetchPaymentSettings();
   }, []);
@@ -62,19 +60,29 @@ const AdminPaymentSettings: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_BASE_URL}/payment-settings/admin`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      console.log('Fetching payment settings...');
+      const { success, data, error } = await apiCall('/payment-settings/admin', {
+        method: 'GET'
       });
 
-      console.log('Payment settings response:', response.data);
-      setPaymentSettings(response.data);
-    } catch (error: any) {
-      console.error('Error fetching payment settings:', error);
-      setError(error.response?.data?.message || 'Error fetching payment settings');
-      toast.error('Error fetching payment settings');
+      if (success) {
+        console.log('Payment settings loaded successfully');
+        setPaymentSettings(data);
+      } else {
+        console.error('Error fetching payment settings:', error);
+        setError(error || 'Error fetching payment settings');
+        toast.error(error || 'Error fetching payment settings');
+        
+        if (error?.includes('token') || error?.includes('auth')) {
+          // Handle token expiration or invalid token
+          localStorage.removeItem('token');
+          window.location.href = '/#/admin/login';
+        }
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      setError('An unexpected error occurred');
+      toast.error('An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -84,29 +92,41 @@ const AdminPaymentSettings: React.FC = () => {
     e.preventDefault();
     
     try {
-      const token = localStorage.getItem('token');
-      const url = editingId 
-        ? `${API_BASE_URL}/payment-settings/${editingId}`
-        : `${API_BASE_URL}/payment-settings`;
+      const endpoint = editingId 
+        ? `/payment-settings/${editingId}`
+        : '/payment-settings';
       
-      const method = editingId ? 'put' : 'post';
+      const method = editingId ? 'PUT' : 'POST';
       
-      const response = await axios[method](url, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      console.log(`Submitting payment settings (${method}):`, formData);
+      const { success, data, error } = await apiCall(endpoint, {
+        method,
+        body: JSON.stringify(formData)
       });
 
-      console.log('Payment settings response:', response.data);
-      toast.success(response.data.message);
-      
-      setShowForm(false);
-      setEditingId(null);
-      resetForm();
-      fetchPaymentSettings();
+      if (success) {
+        console.log('Payment settings saved successfully:', data);
+        toast.success(data.message);
+        
+        setShowForm(false);
+        setEditingId(null);
+        resetForm();
+        fetchPaymentSettings();
+      } else {
+        console.error('Error saving payment settings:', error);
+        setError(error || 'Error saving payment settings');
+        toast.error(error || 'Error saving payment settings');
+      }
     } catch (error: any) {
       console.error('Error saving payment settings:', error);
+      setError(error.response?.data?.message || 'Error saving payment settings');
       toast.error(error.response?.data?.message || 'Error saving payment settings');
+      
+      // If it's an auth error, redirect to login
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/#/admin/login';
+      }
     }
   };
 
@@ -134,11 +154,8 @@ const AdminPaymentSettings: React.FC = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`${API_BASE_URL}/payment-settings/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      await apiCall(`/payment-settings/${id}`, {
+        method: 'DELETE'
       });
 
       toast.success('Payment settings deleted successfully');
@@ -151,14 +168,12 @@ const AdminPaymentSettings: React.FC = () => {
 
   const handleToggleActive = async (id: string) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.patch(`${API_BASE_URL}/payment-settings/${id}/toggle`, {}, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const { data } = await apiCall(`/payment-settings/${id}/toggle`, {
+        method: 'PATCH',
+        body: JSON.stringify({})
       });
 
-      toast.success(response.data.message);
+      toast.success(data.message);
       fetchPaymentSettings();
     } catch (error: any) {
       console.error('Error toggling payment settings:', error);

@@ -54,21 +54,54 @@ export const checkApiHealth = async () => {
   }
 };
 
-// Enhanced API call wrapper with retry logic
+// Helper function to get and validate token
+const getAuthToken = (): string | null => {
+  // Check for token in all possible locations
+  const token = localStorage.getItem('token') || 
+                localStorage.getItem('janu_admin_session') ||
+                localStorage.getItem(process.env.REACT_APP_TOKEN_KEY || 'janu_ecom_token');
+  
+  if (!token) return null;
+  
+  // Ensure token has Bearer prefix
+  return token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+};
+
+// Enhanced API call wrapper with retry logic and token handling
 export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
   const maxRetries = 3;
   let lastError: any;
+  
+  // Get and validate token for authenticated requests
+  const token = getAuthToken();
+  
+  // Skip token for auth endpoints
+  const isAuthEndpoint = [
+    '/auth/login',
+    '/auth/register',
+    '/auth/refresh-token'
+  ].some(path => endpoint.startsWith(path));
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       console.log(`🔄 API call attempt ${attempt}/${maxRetries}:`, `${API_BASE_URL}${endpoint}`);
       
+      // Prepare headers with proper type
+      const headers = new Headers({
+        'Content-Type': 'application/json',
+        ...(token && !isAuthEndpoint ? { 'Authorization': token } : {})
+      });
+      
+      // Add any additional headers from options
+      if (options.headers) {
+        Object.entries(options.headers).forEach(([key, value]) => {
+          if (value) headers.set(key, String(value));
+        });
+      }
+      
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers,
-        },
+        headers,
         signal: AbortSignal.timeout(15000) // 15 second timeout
       });
 

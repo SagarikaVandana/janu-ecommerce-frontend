@@ -17,40 +17,61 @@ const ADMIN_USER_KEY = 'janu_admin_user';
 export const createFallbackAdminSession = async (email: string, password: string): Promise<boolean> => {
   console.log('🔄 Creating fallback admin session...');
   
-  // Verify credentials match the expected admin credentials
-  if (email === FALLBACK_ADMIN_CREDENTIALS.email && password === FALLBACK_ADMIN_CREDENTIALS.password) {
-    const adminUser = {
-      id: 'admin-fallback-001',
-      email: FALLBACK_ADMIN_CREDENTIALS.email,
-      name: FALLBACK_ADMIN_CREDENTIALS.name,
-      isAdmin: true,
-      createdAt: new Date().toISOString(),
-      fallbackMode: true
-    };
+  try {
+    // Verify credentials match the expected admin credentials
+    if (email === FALLBACK_ADMIN_CREDENTIALS.email && password === FALLBACK_ADMIN_CREDENTIALS.password) {
+      const adminUser = {
+        _id: 'admin-fallback-001',
+        id: 'admin-fallback-001',
+        email: FALLBACK_ADMIN_CREDENTIALS.email,
+        name: FALLBACK_ADMIN_CREDENTIALS.name,
+        isAdmin: true,
+        createdAt: new Date().toISOString(),
+        fallbackMode: true
+      };
 
-    const sessionToken = `fallback-token-${Date.now()}`;
-    
-    // Store in localStorage with proper formatting
-    const token = `Bearer ${sessionToken}`; // Add Bearer prefix
-    console.log('🔑 Storing token:', token.substring(0, 20) + '...');
-    
-    localStorage.setItem(ADMIN_SESSION_KEY, token);
-    localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(adminUser));
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(adminUser));
-    
-    // Set default axios authorization header
-    if (typeof window !== 'undefined') {
-      const axios = (await import('axios')).default;
-      axios.defaults.headers.common['Authorization'] = token;
+      // Create a more JWT-like token structure
+      const sessionToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(JSON.stringify({
+        sub: 'admin-fallback-001',
+        email: FALLBACK_ADMIN_CREDENTIALS.email,
+        isAdmin: true,
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24) // 24 hours
+      }))}.dummy-signature`;
+      
+      // Store in localStorage with proper formatting
+      const token = `Bearer ${sessionToken}`;
+      console.log('🔑 Storing token in localStorage');
+      
+      // Clear any existing tokens first
+      localStorage.removeItem(ADMIN_SESSION_KEY);
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Set new tokens
+      localStorage.setItem(ADMIN_SESSION_KEY, token);
+      localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(adminUser));
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(adminUser));
+      
+      // Set default axios authorization header
+      if (typeof window !== 'undefined') {
+        const axios = (await import('axios')).default;
+        axios.defaults.headers.common['Authorization'] = token;
+        console.log('🔑 Set default axios authorization header');
+      }
+      
+      console.log('✅ Fallback admin session created successfully');
+      toast.success('Admin session created (fallback mode)');
+      return true;
+    } else {
+      console.warn('⚠️ Invalid admin credentials for fallback mode');
+      toast.error('Invalid admin credentials');
+      return false;
     }
-    
-    console.log('✅ Fallback admin session created:', adminUser);
-    toast.success('Admin session created (fallback mode)');
-    return true;
-  } else {
-    console.warn('⚠️ Invalid admin credentials for fallback mode');
-    toast.error('Invalid admin credentials');
+  } catch (error) {
+    console.error('❌ Error creating fallback admin session:', error);
+    toast.error('Failed to create admin session');
     return false;
   }
 };
@@ -58,6 +79,41 @@ export const createFallbackAdminSession = async (email: string, password: string
 // Function to check if user has valid admin session (fallback or real)
 export const hasValidAdminSession = (): boolean => {
   try {
+    // First check if we have a valid token in localStorage
+    const token = localStorage.getItem('token') || localStorage.getItem(ADMIN_SESSION_KEY);
+    if (!token) {
+      console.log('❌ No admin session token found');
+      return false;
+    }
+    
+    // Check if token has the Bearer prefix
+    const authToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+    
+    // Set the axios default header if it's not already set
+    if (typeof window !== 'undefined') {
+      const axios = require('axios');
+      if (!axios.defaults.headers.common['Authorization']) {
+        axios.defaults.headers.common['Authorization'] = authToken;
+      }
+    }
+    
+    // Check if we have user data
+    const userJson = localStorage.getItem('user') || localStorage.getItem(ADMIN_USER_KEY);
+    if (!userJson) {
+      console.log('❌ No user data found in session');
+      return false;
+    }
+    
+    const user = JSON.parse(userJson);
+    const isAdmin = user.isAdmin || (user.role === 'admin');
+    
+    if (!isAdmin) {
+      console.log('❌ User does not have admin privileges');
+      return false;
+    }
+    
+    console.log('✅ Valid admin session found');
+    return true;
     const token = localStorage.getItem('token');
     const userStr = localStorage.getItem('user');
     
