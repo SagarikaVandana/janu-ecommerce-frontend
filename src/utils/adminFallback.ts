@@ -14,7 +14,7 @@ const ADMIN_SESSION_KEY = 'janu_admin_session';
 const ADMIN_USER_KEY = 'janu_admin_user';
 
 // Function to create a fallback admin session when backend is unavailable
-export const createFallbackAdminSession = (email: string, password: string): boolean => {
+export const createFallbackAdminSession = async (email: string, password: string): Promise<boolean> => {
   console.log('🔄 Creating fallback admin session...');
   
   // Verify credentials match the expected admin credentials
@@ -30,11 +30,20 @@ export const createFallbackAdminSession = (email: string, password: string): boo
 
     const sessionToken = `fallback-token-${Date.now()}`;
     
-    // Store in localStorage
-    localStorage.setItem(ADMIN_SESSION_KEY, sessionToken);
+    // Store in localStorage with proper formatting
+    const token = `Bearer ${sessionToken}`; // Add Bearer prefix
+    console.log('🔑 Storing token:', token.substring(0, 20) + '...');
+    
+    localStorage.setItem(ADMIN_SESSION_KEY, token);
     localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(adminUser));
-    localStorage.setItem('token', sessionToken);
+    localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(adminUser));
+    
+    // Set default axios authorization header
+    if (typeof window !== 'undefined') {
+      const axios = (await import('axios')).default;
+      axios.defaults.headers.common['Authorization'] = token;
+    }
     
     console.log('✅ Fallback admin session created:', adminUser);
     toast.success('Admin session created (fallback mode)');
@@ -148,9 +157,18 @@ export const enhancedAdminLogin = async (email: string, password: string): Promi
       const data = await response.json();
       
       if (data.user && data.user.isAdmin) {
-        // Store successful backend authentication
-        localStorage.setItem('token', data.token);
+        // Store successful backend authentication with proper token formatting
+        const token = data.token.startsWith('Bearer ') ? data.token : `Bearer ${data.token}`;
+        console.log('🔑 Storing backend token:', token.substring(0, 20) + '...');
+        
+        localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(data.user));
+        
+        // Set default axios authorization header
+        if (typeof window !== 'undefined') {
+          const axios = (await import('axios')).default;
+          axios.defaults.headers.common['Authorization'] = token;
+        }
         
         return {
           success: true,

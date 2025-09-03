@@ -22,31 +22,38 @@ const AdminLogin: React.FC = () => {
       // First try enhanced admin login with fallback support
       const result = await enhancedAdminLogin(email, password);
       
-      if (result.success && result.user) {
-        setFallbackMode(result.fallbackMode || false);
+      if (result?.success && result.user) {
+        setFallbackMode(!!result.fallbackMode);
         
         if (result.fallbackMode) {
+          console.log('✅ Admin login successful (fallback mode)');
           toast.success('Admin login successful (fallback mode)');
         } else {
+          console.log('✅ Admin login successful');
           toast.success('Admin login successful');
         }
         
-        // Navigate to admin dashboard
-        navigate('/admin/dashboard');
+        // Navigate to admin dashboard with a small delay
+        setTimeout(() => {
+          navigate('/admin/dashboard');
+        }, 500);
       } else {
         // Enhanced login failed, try regular login as fallback
         const regularSuccess = await login(email, password);
         
         if (regularSuccess) {
           const user = JSON.parse(localStorage.getItem('user') || '{}');
-          if (user.isAdmin) {
+          if (user?.isAdmin) {
+            console.log('✅ Regular admin login successful');
             navigate('/admin/dashboard');
           } else {
+            console.error('❌ Access denied. Admin privileges required.');
             toast.error('Access denied. Admin privileges required.');
             navigate('/login');
           }
         } else {
-          toast.error(result.error || 'Admin login failed');
+          console.error('❌ Admin login failed:', result?.error || 'Unknown error');
+          toast.error(result?.error || 'Admin login failed');
         }
       }
     } catch (error) {
