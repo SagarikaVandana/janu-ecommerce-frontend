@@ -4,6 +4,9 @@ services:
     env: static
     buildCommand: npm run build
     staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://janu-ecommerce-backend.onrender.com/api
     routes:
       - type: rewrite
         source: '/admin/*'
