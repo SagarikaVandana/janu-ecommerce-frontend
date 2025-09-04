@@ -1,5 +1,23 @@
 // Admin Fallback Authentication System
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
+
+// Safe toast function that won't throw if toast is not available
+const safeToast = {
+  success: (message: string) => {
+    if (typeof window !== 'undefined' && typeof toast !== 'undefined') {
+      toast.success(message);
+    } else {
+      console.log(`[Toast Success] ${message}`);
+    }
+  },
+  error: (message: string) => {
+    if (typeof window !== 'undefined' && typeof toast !== 'undefined') {
+      toast.error(message);
+    } else {
+      console.error(`[Toast Error] ${message}`);
+    }
+  }
+};
 
 // Fallback admin credentials for development/testing
 const FALLBACK_ADMIN_CREDENTIALS = {
@@ -77,19 +95,27 @@ export const createFallbackAdminSession = async (email: string, password: string
       // Store the token with 'Bearer ' prefix
       const token = sessionToken;
       
-      // Set new tokens
-      localStorage.setItem(ADMIN_SESSION_KEY, token);
-      localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(adminUser));
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(adminUser));
+      // Store the token and user data
+      localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify({
+        token: token,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        fallback: true
+      }));
       
-      // Set default axios authorization header
+      localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(adminUser));
+      
+      // Set axios default header if available
       if (typeof window !== 'undefined') {
-        const axios = (await import('axios')).default;
-        axios.defaults.headers.common['Authorization'] = token;
-        console.log('🔑 Set default axios authorization header');
+        try {
+          const axios = (await import('axios')).default;
+          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        } catch (e) {
+          console.warn('Axios not available for setting default headers');
+        }
       }
       
+      // Show success message
+      safeToast.success('Fallback admin session created successfully');
       console.log('✅ Fallback admin session created successfully');
       return {
         success: true,
@@ -322,10 +348,10 @@ const handleFallbackLogin = async (email: string, password: string): Promise<{
       fallbackMode: true
     };
   } catch (error) {
-    console.error('❌ Error in fallback login:', error);
+    console.error('Error in fallback login:', error);
     return {
       success: false,
-      error: 'Error during fallback authentication',
+      error: 'An error occurred during login',
       fallbackMode: true
     };
   }

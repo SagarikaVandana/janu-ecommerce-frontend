@@ -1,8 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, AlertCircle, Loader2, Shield, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, AlertCircle, Loader2, Shield as ShieldIcon, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { enhancedAdminLogin } from '../../utils/adminFallback';
+import toast from 'react-hot-toast';
+
+interface LoginResult {
+  success: boolean;
+  user?: any;
+  token?: string;
+  error?: string;
+  fallbackMode?: boolean;
+}
 
 const AdminLogin: React.FC = () => {
   const [email, setEmail] = useState('janucollectionvizag@gmail.com');
@@ -19,7 +28,7 @@ const AdminLogin: React.FC = () => {
     
     try {
       // First try enhanced admin login with fallback support
-      const result = await enhancedAdminLogin(email, password);
+      const result = await enhancedAdminLogin(email, password) as LoginResult;
       
       if (result?.success && result.user) {
         setFallbackMode(!!result.fallbackMode);
@@ -73,7 +82,7 @@ const AdminLogin: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <Shield className="h-12 w-12 text-primary-500 mx-auto" />
+          <ShieldIcon className="h-12 w-12 text-primary-500 mx-auto" />
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
             Admin Login
           </h2>
