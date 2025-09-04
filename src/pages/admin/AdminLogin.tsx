@@ -1,9 +1,34 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, AlertCircle, Loader2, Shield as ShieldIcon, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, AlertCircle, LockKeyhole, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { enhancedAdminLogin } from '../../utils/adminFallback';
-import toast from 'react-hot-toast';
+
+// Safe toast function that won't throw if toast is not available
+const safeToast = {
+  success: (message: string) => {
+    if (typeof window !== 'undefined' && typeof toast !== 'undefined') {
+      toast.success(message);
+    } else {
+      console.log(`[Toast Success] ${message}`);
+    }
+  },
+  error: (message: string) => {
+    if (typeof window !== 'undefined' && typeof toast !== 'undefined') {
+      toast.error(message);
+    } else {
+      console.error(`[Toast Error] ${message}`);
+    }
+  }
+};
+
+// Import toast dynamically to avoid SSR issues
+let toast: any;
+if (typeof window !== 'undefined') {
+  import('react-hot-toast').then((module) => {
+    toast = module.toast;
+  });
+}
 
 interface LoginResult {
   success: boolean;
@@ -41,48 +66,53 @@ const AdminLogin: React.FC = () => {
         
         if (result.fallbackMode) {
           console.log('✅ Admin login successful (fallback mode)', result.user);
-          toast.success('Admin login successful (fallback mode)');
+          safeToast.success('Admin login successful (fallback mode)');
+          window.location.href = '/#/admin/dashboard';
         } else {
           console.log('✅ Admin login successful', result.user);
-          toast.success('Admin login successful');
+          safeToast.success('Admin login successful');
+          window.location.href = '/#/admin/dashboard';
         }
-        
-        // Navigate to admin dashboard with a small delay
-        setTimeout(() => {
-          navigate('/admin/dashboard');
-        }, 500);
       } else {
         // If enhanced login failed, try regular login as fallback
-        const regularSuccess = await login(email, password);
-        
-        if (regularSuccess) {
-          const user = JSON.parse(localStorage.getItem('user') || '{}');
-          if (user?.isAdmin) {
-            console.log('✅ Regular admin login successful');
-            navigate('/admin/dashboard');
+        try {
+          const regularSuccess = await login(email, password);
+          
+          if (regularSuccess) {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user?.isAdmin) {
+              console.log('✅ Regular admin login successful');
+              safeToast.success('Admin login successful');
+              window.location.href = '/#/admin/dashboard';
+            } else {
+              console.error('❌ Access denied. Admin privileges required.');
+              safeToast.error('Access denied. Admin privileges required.');
+              localStorage.clear();
+              window.location.href = '/#/login';
+            }
           } else {
-            console.error('❌ Access denied. Admin privileges required.');
-            toast.error('Access denied. Admin privileges required.');
-            navigate('/login');
+            const errorMessage = result?.error || 'Invalid email or password';
+            console.error('❌ Admin login failed:', errorMessage);
+            safeToast.error(errorMessage);
           }
-        } else {
-          console.error('❌ Admin login failed:', result?.error || 'Unknown error');
-          toast.error(result?.error || 'Admin login failed');
+        } catch (loginError) {
+          console.error('Login error:', loginError);
+          safeToast.error('Failed to login. Please try again.');
         }
       }
     } catch (error) {
       console.error('Admin login error:', error);
-      toast.error('An unexpected error occurred during login');
+      safeToast.error('An unexpected error occurred during login');
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <ShieldIcon className="h-12 w-12 text-primary-500 mx-auto" />
+          <LockKeyhole className="h-12 w-12 text-primary-500 mx-auto" />
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
             Admin Login
           </h2>
