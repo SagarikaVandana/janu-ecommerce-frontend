@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
-import axios from 'axios';
-import { API_BASE_URL } from '../../config/api';
+import { Mail, Lock, AlertCircle, Loader2, Shield, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { enhancedAdminLogin } from '../../utils/adminFallback';
-import toast from 'react-hot-toast';
 
 const AdminLogin: React.FC = () => {
   const [email, setEmail] = useState('janucollectionvizag@gmail.com');
