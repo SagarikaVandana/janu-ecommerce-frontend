@@ -22,17 +22,22 @@ const AdminLogin: React.FC = () => {
     
     try {
       // First try enhanced admin login with fallback support
-      const response = await axios.post(`${API_BASE_URL}/admin/login`, { email, password });
-      const result = response.data;
+      const result = await enhancedAdminLogin(email, password);
       
       if (result?.success && result.user) {
         setFallbackMode(!!result.fallbackMode);
         
+        // Store the user and token in localStorage
+        if (result.token) {
+          localStorage.setItem('token', result.token);
+          localStorage.setItem('user', JSON.stringify(result.user));
+        }
+        
         if (result.fallbackMode) {
-          console.log('✅ Admin login successful (fallback mode)');
+          console.log('✅ Admin login successful (fallback mode)', result.user);
           toast.success('Admin login successful (fallback mode)');
         } else {
-          console.log('✅ Admin login successful');
+          console.log('✅ Admin login successful', result.user);
           toast.success('Admin login successful');
         }
         
@@ -41,7 +46,7 @@ const AdminLogin: React.FC = () => {
           navigate('/admin/dashboard');
         }, 500);
       } else {
-        // Enhanced login failed, try regular login as fallback
+        // If enhanced login failed, try regular login as fallback
         const regularSuccess = await login(email, password);
         
         if (regularSuccess) {
