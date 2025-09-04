@@ -29,7 +29,7 @@ const AdminDashboard: React.FC = () => {
 
   const fetchDashboardStats = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/admin/dashboard-stats`);
+      const response = await axios.get(`${API_BASE_URL}/api/admin/dashboard-stats`);
       setStats(response.data);
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
