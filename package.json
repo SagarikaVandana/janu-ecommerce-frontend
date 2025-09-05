@@ -3,10 +3,11 @@
   "private": true,
   "version": "1.0.10",
   "type": "module",
+  "homepage": "https://janu-ecommerce-frontend.onrender.com",
   "scripts": {
     "dev": "vite",
     "postinstall": "chmod +x node_modules/.bin/* || true",
-    "build": "vite build",
+    "build": "vite build && cp public/_redirects dist/",
     "preview": "vite preview"
   },
   "dependencies": {

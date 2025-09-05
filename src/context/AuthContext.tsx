@@ -3,19 +3,24 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { API_BASE_URL, API_ENDPOINTS } from '../config/api';
 
-interface User {
+export interface User {
   _id: string;
   name: string;
   email: string;
-  isAdmin?: boolean;
+  isAdmin: boolean;
+  role?: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+  login: (email: string, password: string, isAdminLogin?: boolean) => Promise<boolean>;
   register: (name: string, email: string, password: string) => Promise<boolean>;
   logout: () => void;
   loading: boolean;
+  checkAuth: () => Promise<boolean>;
+  setAuthToken: (token: string, user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,8 +38,13 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const storedUser = localStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
   const [loading, setLoading] = useState(true);
+  const isAuthenticated = !!user;
+  const [isAdmin, setIsAdmin] = useState<boolean>(user?.isAdmin || false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -49,26 +59,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const fetchUser = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.ME}`, {
-        timeout: 5000 // Add timeout
+        timeout: 5000
       });
-      setUser(response.data);
+      const userData = response.data;
+      setUser(userData);
+      setIsAdmin(userData?.isAdmin || false);
+      return userData;
     } catch (error) {
       console.warn('Failed to fetch user:', error);
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       delete axios.defaults.headers.common['Authorization'];
-      // Don't throw error, just set loading to false
+      return null;
     } finally {
       setLoading(false);
     }
   };
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const setAuthToken = (token: string, user: User) => {
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    setUser(user);
+    setIsAdmin(user.isAdmin || false);
+  };
+
+  const login = async (email: string, password: string, isAdminLogin: boolean = false): Promise<boolean> => {
     try {
-      console.log('🔐 Attempting login with:', { email, apiUrl: `${API_BASE_URL}${API_ENDPOINTS.LOGIN}` });
+      console.log('🔐 Attempting login with:', { email, isAdminLogin, apiUrl: `${API_BASE_URL}${API_ENDPOINTS.LOGIN}` });
       
       const response = await axios.post(`${API_BASE_URL}${API_ENDPOINTS.LOGIN}`, { 
         email: email.trim().toLowerCase(), 
-        password 
+        password,
+        isAdmin: isAdminLogin
       });
       
       const { token, user } = response.data;
@@ -77,13 +100,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error('Invalid response from server');
       }
       
+      if (isAdminLogin && !user.isAdmin) {
+        throw new Error('Access denied. Admin privileges required.');
+      }
+      
+      // Store the token and user data
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
+      
+      // Update axios headers and state
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setUser(user);
+      setIsAdmin(user.isAdmin);
       
-      console.log('✅ Login successful for user:', user.email);
-      toast.success('Login successful!');
+      console.log('✅ Login successful for user:', user.email, { isAdmin: user.isAdmin });
+      toast.success(`Welcome back, ${user.name}!`);
+      
+      // Redirect based on user role
+      if (user.isAdmin) {
+        window.location.href = '/admin/dashboard';
+      } else {
+        window.location.href = '/account';
+      }
+      
       return true;
     } catch (error: any) {
       console.error('❌ Login error:', error);
@@ -138,23 +177,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('user'); // Clear user data
+    localStorage.removeItem('user');
     delete axios.defaults.headers.common['Authorization'];
     setUser(null);
+    setIsAdmin(false);
     toast.success('Logged out successfully');
+  };
+
+  const checkAuth = async (): Promise<User | null> => {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    
+    try {
+      const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.ME}`, {
+        timeout: 5000
+      });
+      setUser(response.data);
+      return response.data;
+    } catch (error) {
+      console.warn('Auth check failed:', error);
+      logout();
+      return null;
+    }
   };
 
   const value = {
     user,
+    isAuthenticated,
+    isAdmin,
     login,
     register,
     logout,
     loading,
+    setAuthToken,
+    checkAuth: fetchUser,
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 };

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth Status Checker</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        button { background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-right: 10px; }
+        .danger { background: #dc3545; }
+    </style>
+</head>
+<body>
+    <h1>Authentication Status Checker</h1>
+    <div id="status"></div>
+    <div>
+        <button onclick="checkAuth()">Check Status</button>
+        <button onclick="logout()" class="danger">Logout</button>
+    </div>
+    <pre id="output"></pre>
+
+    <script>
+        function log(message, isError = false) {
+            const output = document.getElementById('output');
+            output.textContent += (isError ? '❌ ' : 'ℹ️ ') + message + '\n';
+            console.log(message);
+        }
+
+        function checkAuth() {
+            const statusDiv = document.getElementById('status');
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            log('Checking authentication status...');
+            
+            if (!token) {
+                statusDiv.innerHTML = '<div class="error">❌ No token found. Please log in.</div>';
+                log('No authentication token found in localStorage');
+                return;
+            }
+            
+            log('Token found in localStorage');
+            
+            try {
+                const userData = user ? JSON.parse(user) : null;
+                const isAdmin = userData?.isAdmin === true;
+                
+                log('User data found: ' + (userData ? 'Yes' : 'No'));
+                log('Is admin: ' + (isAdmin ? 'Yes' : 'No'));
+                log('Token starts with: ' + token.substring(0, 20) + '...');
+                
+                if (isAdmin) {
+                    statusDiv.innerHTML = '<div class="success">✅ Logged in as admin: ' + (userData?.email || 'Unknown') + '</div>';
+                } else {
+                    statusDiv.innerHTML = '<div class="error">❌ Logged in but not an admin</div>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="error">❌ Error checking auth status</div>';
+                log('Error: ' + error.message, true);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            log('Logged out. Tokens removed from localStorage.');
+            document.getElementById('status').innerHTML = '<div class="error">❌ Logged out</div>';
+        }
+
+        // Run check on page load
+        checkAuth();
+    </script>
+</body>
+</html>

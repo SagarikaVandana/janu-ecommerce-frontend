@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Heart, ShoppingBag, Star, Truck, Shield, RefreshCw, MessageCircle } from 'lucide-react';
+import { Heart, ShoppingBag, Star, Truck, LockKeyhole, RefreshCw, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -69,7 +69,7 @@ const ProductDetail: React.FC = () => {
   };
 
   const features = [
-    { icon: Shield, text: 'Secure payment' },
+    { icon: LockKeyhole, text: 'Secure payment' },
   ];
 
   if (loading) {

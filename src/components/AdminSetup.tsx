@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, Settings, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { LockKeyhole, Settings, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { setupAdminUser, testAdminLogin, createAdminUser, DEFAULT_ADMIN_CREDENTIALS } from '../utils/adminSetup';
 import { enhancedAdminLogin, testBackendConnectivity } from '../utils/adminFallback';
 import toast from 'react-hot-toast';
@@ -145,7 +145,7 @@ const AdminSetup: React.FC<AdminSetupProps> = ({ onSetupComplete }) => {
   return (
     <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
       <div className="text-center mb-6">
-        <Shield className="h-12 w-12 text-primary-500 mx-auto mb-3" />
+        <LockKeyhole className="h-12 w-12 text-primary-500 mx-auto mb-3" />
         <h3 className="text-lg font-semibold text-gray-900">Admin Setup & Diagnostics</h3>
         <p className="text-sm text-gray-600">
           Diagnose and fix admin authentication issues
@@ -185,7 +185,7 @@ const AdminSetup: React.FC<AdminSetupProps> = ({ onSetupComplete }) => {
             disabled={loading}
             className="w-full flex items-center justify-center space-x-2 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
           >
-            <Shield className="h-4 w-4" />
+            <LockKeyhole className="h-4 w-4" />
             <span>Create Admin User</span>
           </button>
 

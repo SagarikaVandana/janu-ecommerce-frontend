@@ -1,18 +1,116 @@
 // API Configuration
 const getApiBaseUrl = () => {
-  // In production, always use the production backend URL
-  if (import.meta.env.PROD) {
-    const prodUrl = 'https://janu-ecommerce-backend.onrender.com/api';
-    console.log('Using production API URL:', prodUrl);
-    return prodUrl;
+  // Use Vite environment variables
+  const env = import.meta.env;
+  
+  // Get API URL from environment variables or use default
+  let apiUrl = env.VITE_API_URL || 
+    (env.MODE === 'development' 
+      ? 'http://localhost:5000' 
+      : 'https://janu-ecommerce-backend.onrender.com'
+    );
+  
+  // Ensure the URL has the /api prefix
+  if (!apiUrl.endsWith('/api')) {
+    apiUrl = apiUrl.endsWith('/') 
+      ? `${apiUrl}api` 
+      : `${apiUrl}/api`;
   }
   
-  // In development, use localhost
-  console.log('Using development API URL');
-  return 'http://localhost:5000/api';
+  console.log(`Using ${env.MODE || 'production'} API URL:`, apiUrl);
+  
+  // Remove trailing slash if present
+  return apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
 };
 
 export const API_BASE_URL = getApiBaseUrl();
+
+// Common headers for all API requests
+const getCommonHeaders = (token?: string | null) => ({
+  'Content-Type': 'application/json',
+  'Cache-Control': 'no-cache, no-store, must-revalidate',
+  'Pragma': 'no-cache',
+  'Expires': '0',
+  ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+});
+
+/**
+ * Makes an authenticated API request with proper error handling
+ */
+export const apiRequest = async <T = any>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<{ data?: T; error?: string }> => {
+  const token = getAuthToken();
+  const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        ...getCommonHeaders(token),
+        ...(options.headers || {})
+      },
+      credentials: 'include' as RequestCredentials
+    });
+
+    // Handle non-2xx responses
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      
+      try {
+        const errorData = JSON.parse(errorText);
+        errorMessage = errorData.message || errorMessage;
+      } catch (e) {
+        errorMessage = errorText || errorMessage;
+      }
+      
+      // Handle unauthorized errors
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/admin/login';
+      }
+      
+      return { error: errorMessage };
+    }
+
+    // Handle empty responses (like 204 No Content)
+    if (response.status === 204) {
+      return { data: {} as T };
+    }
+
+    // Parse and return the response data
+    const data = await response.json();
+    return { data };
+  } catch (error: any) {
+    console.error('API request failed:', error);
+    return { error: error.message || 'Network error occurred' };
+  }
+};
+
+
+// Helper function to get and validate token
+export const getAuthToken = (): string | null => {
+  try {
+    // Check for token in different possible storage locations
+    const tokenSources = [
+      localStorage.getItem('token'),
+      localStorage.getItem('janu_admin_session'),
+      localStorage.getItem(import.meta.env.VITE_TOKEN_KEY || 'janu_ecom_token')
+    ];
+    
+    // Return the first valid token found
+    const validToken = tokenSources.find(token => 
+      token && typeof token === 'string' && token.length > 10
+    );
+    
+    return validToken || null;
+  } catch (error) {
+    console.error('Error getting auth token:', error);
+    return null;
+  }
+};
 
 // Enhanced health check function with better error handling
 export const checkApiHealth = async () => {
@@ -41,176 +139,101 @@ export const checkApiHealth = async () => {
   }
 };
 
-// Helper function to get and validate token
-const getAuthToken = (): string | null => {
+// Helper function to make authenticated API calls
+export const makeAuthenticatedRequest = async (endpoint: string, options: RequestInit = {}): Promise<any> => {
+  const token = getAuthToken();
+  
+  // Log the token status (without logging the actual token for security)
+  console.log('Auth token status:', token ? 'Token exists' : 'No token found');
+  
+  // Ensure endpoint starts with a slash
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  
+  // Ensure base URL doesn't end with a slash
+  const baseUrl = API_BASE_URL.endsWith('/') 
+    ? API_BASE_URL.slice(0, -1) 
+    : API_BASE_URL;
+    
+  const url = `${baseUrl}${cleanEndpoint}`;
+  
+  console.log('API Request:', { 
+    method: options.method || 'GET', 
+    url,
+    endpoint,
+    baseUrl,
+    hasToken: !!token
+  });
+  
+  const headers = new Headers({
+    'Content-Type': 'application/json',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    ...(options.headers || {})
+  });
+  
+  // Ensure we're not sending undefined or null in the body
+  const body = options.body ? JSON.stringify(options.body) : undefined;
+  
   try {
-    // Check for token in different possible storage locations
-    const tokenSources = [
-      localStorage.getItem('token'),
-      localStorage.getItem('janu_admin_session'),
-      localStorage.getItem(process.env.REACT_APP_TOKEN_KEY || 'janu_ecom_token')
-    ];
-
-    // Find the first valid token
-    for (const token of tokenSources) {
-      if (!token) continue;
-      
-      try {
-        // Clean up the token
-        let cleanToken = token.trim();
-        
-        // Remove any surrounding quotes if present
-        cleanToken = cleanToken.replace(/^"|"$|^'|'$/g, '');
-        
-        // Check if it's a JWT (should have 3 parts when split by '.')
-        const parts = cleanToken.split('.');
-        if (parts.length === 3) {
-          // If it already has Bearer prefix, return as is
-          if (cleanToken.startsWith('Bearer ')) {
-            console.log('🔑 Found valid token with Bearer prefix');
-            return cleanToken;
-          }
-          // Otherwise add Bearer prefix
-          console.log('🔑 Found valid token, adding Bearer prefix');
-          return `Bearer ${cleanToken}`;
-        } else {
-          console.warn('Token format is not a valid JWT:', cleanToken.substring(0, 20) + '...');
-        }
-      } catch (e) {
-        console.warn('Error processing token:', e);
-        continue;
-      }
+    console.log('Making request with headers:', Object.fromEntries(headers.entries()));
+    
+    const response = await fetch(url, {
+      ...options,
+      headers,
+      body,
+      credentials: 'include' // Important for cookies/sessions
+    });
+    
+    console.log('Response status:', response.status, response.statusText);
+    
+    // Handle 401 Unauthorized
+    if (response.status === 401) {
+      console.error('Authentication failed - redirecting to login');
+      localStorage.removeItem('token');
+      window.location.href = '/#/admin/login';
+      throw new Error('Session expired. Please log in again.');
     }
     
-    console.log('ℹ️ No valid token found in storage');
-    return null;
-  } catch (error) {
-    console.error('❌ Error in getAuthToken:', error);
-    return null;
-  }
-};
-
-// Enhanced API call wrapper with retry logic and token handling
-export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
-  const maxRetries = 3;
-  let lastError: any;
-  
-  // Skip token for auth endpoints
-  const isAuthEndpoint = [
-    '/auth/login',
-    '/auth/register',
-    '/auth/refresh-token'
-  ].some(path => endpoint.startsWith(path));
-  
-  // Get and validate token for authenticated requests
-  const token = !isAuthEndpoint ? getAuthToken() : null;
-  
-  // Log token status for debugging
-  if (!isAuthEndpoint) {
-    console.log('🔑 Token status:', token ? 'Found' : 'Not found');
-  }
-
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      console.log(`🔄 API call attempt ${attempt}/${maxRetries}:`, `${API_BASE_URL}${endpoint}`);
-      
-      // Prepare headers with proper type
-      const headers = new Headers({
-        'Content-Type': 'application/json',
-        ...(token && !isAuthEndpoint ? { 'Authorization': token } : {})
-      });
-      
-      // Add any additional headers from options
-      if (options.headers) {
-        Object.entries(options.headers).forEach(([key, value]) => {
-          if (value) headers.set(key, String(value));
-        });
-      }
-      
-      // Create controller for timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
-      
+    if (!response.ok) {
+      let errorData;
       try {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-          ...options,
-          headers,
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-
-        // Handle 401 Unauthorized - token might be expired or invalid
-        if (response.status === 401) {
-          console.warn('⚠️ Authentication failed - token might be expired or invalid');
-          // Clear invalid token
-          localStorage.removeItem('token');
-          localStorage.removeItem('janu_admin_session');
-          // Redirect to login if not already there
-          if (!window.location.pathname.includes('/login')) {
-            window.location.href = '/#/admin/login';
-          }
-          return { 
-            success: false, 
-            error: 'Your session has expired. Please log in again.' 
-          };
-        }
-
-        if (response.ok) {
-          try {
-            const data = await response.json();
-            console.log('✅ API call successful');
-            return { success: true, data };
-          } catch (e) {
-            console.warn('⚠️ Success response but failed to parse JSON');
-            return { success: true, data: {} };
-          }
-        } else {
-          let errorData;
-          try {
-            errorData = await response.json();
-          } catch (e) {
-            errorData = { message: `HTTP error ${response.status}` };
-          }
-          console.warn(`⚠️ API call failed with status ${response.status}:`, errorData);
-          return { 
-            success: false, 
-            error: errorData.message || 'API call failed',
-            status: response.status
-          };
-        }
-      } catch (error) {
-        clearTimeout(timeoutId);
-        throw error; // Re-throw to be caught by outer try-catch
+        errorData = await response.json();
+        console.error('API error response:', errorData);
+      } catch (e) {
+        const text = await response.text();
+        console.error('Failed to parse error response:', text);
+        errorData = { message: `HTTP error! status: ${response.status} - ${text || response.statusText}` };
       }
-    } catch (error: any) {
-      lastError = error;
-      const errorMessage = error.name === 'AbortError' 
-        ? 'Request timed out' 
-        : error.message || 'Network error';
-      
-      console.error(`❌ API call attempt ${attempt} failed:`, errorMessage);
-      
-      if (attempt < maxRetries) {
-        // Wait before retrying (exponential backoff)
-        const delay = 1000 * Math.pow(2, attempt - 1);
-        console.log(`⏳ Retrying in ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-      }
+      throw new Error(errorData.message || `API request failed with status ${response.status}`);
     }
+    
+    // Handle empty responses (like 204 No Content)
+    if (response.status === 204) {
+      return {};
+    }
+    
+    try {
+      const data = await response.json();
+      console.log('API response data:', data);
+      return data;
+    } catch (e) {
+      console.error('Failed to parse response as JSON:', e);
+      throw new Error('Invalid JSON response from server');
+    }
+  } catch (error) {
+    console.error('API request failed:', error);
+    throw error;
   }
-
-  return { 
-    success: false, 
-    error: lastError?.message || 'All API call attempts failed',
-    status: lastError?.status || 500
-  };
 };
 
+// API Endpoints
 export const API_ENDPOINTS = {
   // Auth endpoints
   LOGIN: '/auth/login',
   REGISTER: '/auth/register',
+  REFRESH_TOKEN: '/auth/refresh-token',
   ME: '/auth/me',
   
   // Product endpoints
@@ -225,11 +248,11 @@ export const API_ENDPOINTS = {
   // User endpoints
   USER_PROFILE: '/users/profile',
   CHANGE_PASSWORD: '/users/change-password',
+  UPDATE_PROFILE: '/users/update-profile',
   
   // Admin endpoints
   ADMIN_PRODUCTS: '/admin/products',
-  
-  UPDATE_PROFILE: '/users/update-profile',
+  ADMIN_DASHBOARD_STATS: '/admin/dashboard-stats',
   
   // Category endpoints
   CATEGORIES: '/categories',

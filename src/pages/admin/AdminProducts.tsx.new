@@ -1,0 +1,124 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { API_BASE_URL, API_ENDPOINTS } from '../../config/api';
+
+interface Product {
+  _id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  images: string[];
+}
+
+const AdminProducts: React.FC = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>('');
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_PRODUCTS}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.data) {
+        setProducts(response.data);
+      } else {
+        setError('No products found');
+      }
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to load products';
+      setError(errorMessage);
+
+      if (error.response?.status === 401 || errorMessage?.includes('token') || errorMessage?.includes('Unauthorized')) {
+        localStorage.removeItem('token');
+        window.location.href = '/#/admin/login';
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div>Loading products...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Manage Products</h1>
+      
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="p-4 border-b">
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-semibold">Product List</h2>
+            <button 
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              onClick={() => window.location.href = '/#/admin/products/new'}
+            >
+              Add New Product
+            </button>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {products.map((product) => (
+                <tr key={product._id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      {product.images && product.images.length > 0 && (
+                        <div className="flex-shrink-0 h-10 w-10">
+                          <img className="h-10 w-10 rounded-full" src={product.images[0]} alt={product.name} />
+                        </div>
+                      )}
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {product.category}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    ${product.price.toFixed(2)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <a href={`/#/admin/products/edit/${product._id}`} className="text-indigo-600 hover:text-indigo-900 mr-4">Edit</a>
+                    <button className="text-red-600 hover:text-red-900">Delete</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AdminProducts;

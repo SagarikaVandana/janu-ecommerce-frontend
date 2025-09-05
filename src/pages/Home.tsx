@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, Truck, Shield, CheckCircle } from 'lucide-react';
+import { ArrowRight, Truck, LockKeyhole, CheckCircle } from 'lucide-react';
 import Logo from '../components/Logo';
 import { toast } from 'react-hot-toast';
 
@@ -69,7 +69,7 @@ const Home: React.FC = () => {
       description: 'Free delivery on orders above ₹999',
     },
     {
-      icon: Shield,
+      icon: LockKeyhole,
       title: 'Secure Payment',
       description: '100% secure payment processing',
     },

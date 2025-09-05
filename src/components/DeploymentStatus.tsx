@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, AlertCircle, RefreshCw, Info } from 'lucide-react';
-import { API_BASE_URL, checkApiHealth, apiCall } from '../config/api';
+import axios from 'axios';
+import { API_BASE_URL, checkApiHealth } from '../config/api';
 
 interface DeploymentStatusProps {
   showDetails?: boolean;
@@ -41,8 +42,17 @@ const DeploymentStatus: React.FC<DeploymentStatusProps> = ({ showDetails = false
 
       // Check products endpoint
       if (isHealthy) {
-        const productsResult = await apiCall('/products?limit=1');
-        deploymentStatus.checks.productsEndpoint = productsResult.success ? 'Working' : 'Failed';
+        try {
+          const response = await axios.get(`${API_BASE_URL}/products?limit=1`, {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          deploymentStatus.checks.productsEndpoint = response.data ? 'Working' : 'Failed';
+        } catch (error) {
+          deploymentStatus.checks.productsEndpoint = 'Failed';
+          console.error('Error checking products endpoint:', error);
+        }
       } else {
         deploymentStatus.checks.productsEndpoint = 'Skipped (API unhealthy)';
       }

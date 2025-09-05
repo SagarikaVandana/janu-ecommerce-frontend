@@ -10,8 +10,7 @@ import {
   CreditCard,
   Mail,
 } from 'lucide-react';
-import axios from 'axios';
-import { API_BASE_URL } from '../../config/api';
+import { makeAuthenticatedRequest } from '../../config/api';
 
 const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState({
@@ -29,14 +28,49 @@ const AdminDashboard: React.FC = () => {
 
   const fetchDashboardStats = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/admin/dashboard-stats`);
-      setStats(response.data);
-    } catch (error) {
+      console.log('Fetching dashboard stats...');
+      const response = await makeAuthenticatedRequest('/dashboard-stats', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
+        }
+      });
+      
+      console.log('Dashboard stats response:', response);
+      
+      if (!response) {
+        throw new Error('No response received from server');
+      }
+      
+      // Handle different response formats
+      const statsData = response.data || response;
+      
+      setStats({
+        totalProducts: statsData.totalProducts || 0,
+        totalOrders: statsData.totalOrders || 0,
+        totalUsers: statsData.totalUsers || 0,
+        totalRevenue: statsData.totalRevenue || 0,
+        recentOrders: statsData.recentOrders || []
+      });
+      
+    } catch (error: any) {
       console.error('Error fetching dashboard stats:', error);
-      // Show error toast to user
-      if (error.response) {
-        console.error('Response data:', error.response.data);
-        console.error('Response status:', error.response.status);
+      console.error('Error details:', error.message);
+      
+      // Set default values on error
+      setStats({
+        totalProducts: 0,
+        totalOrders: 0,
+        totalUsers: 0,
+        totalRevenue: 0,
+        recentOrders: []
+      });
+      
+      // Show error to user
+      if (error.message?.includes('401')) {
+        localStorage.removeItem('token');
+        window.location.href = '/#/admin/login';
       }
     } finally {
       setLoading(false);
